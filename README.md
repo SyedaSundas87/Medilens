@@ -1,3 +1,7 @@
+Demo video link of MEDILENS:
+
+https://drive.google.com/file/d/1G3Ji399MjPlVtzWN1jIX_anN-8Idl30a/view?usp=sharing
+
 # 🏥 Medilens – AI-Powered Hospital Automation Platform
 
 This repository contains the backend automation workflows for **Medilens**, an AI-powered hospital operations and patient assistance platform.  
@@ -357,6 +361,10 @@ Medilens combines multiple AI-powered workflows to provide:
 Together, Medilens reduces manual work, improves response times, enhances patient experience, and enables data-driven decision-making in hospitals.
 
 ---
+
+Demo video link of MEDILENS:
+
+https://drive.google.com/file/d/1G3Ji399MjPlVtzWN1jIX_anN-8Idl30a/view?usp=sharing
 
 ## 📄 License
 This project is licensed under the MIT License.  
