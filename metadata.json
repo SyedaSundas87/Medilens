@@ -1,0 +1,8 @@
+{
+  "name": "Medilens06",
+  "description": "A smart, AI-powered hospital experience for symptom triage, wellness guidance, and appointment booking.Medilance uses Google AI Studio’s Gemini 3 Pro to analyze symptoms via text, voice, and image. Integrated with N8N automation workflows, it: Predicts possible diseases or causes. Suggests herbal remedies, lifestyle changes, diet, exercises, and yoga. Detects emergency cases, alerts doctors and patients via email. Analyze lab report.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
