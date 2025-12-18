@@ -1,0 +1,1470 @@
+{
+  "name": "Medilens Symptoms Checker - Clean Version",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hospital",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f02d3616-db5f-492f-9f72-6317dd8fc0e6",
+      "name": "Patient Input Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2624,
+        1264
+      ],
+      "webhookId": "REPLACE_WITH_YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "patientEmail",
+              "value": "patient@example.com",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "doctorEmail",
+              "value": "doctor@example.com",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "bookingUrl",
+              "value": "https://your-n8n-instance.app.n8n.cloud/webhook/medical-booking",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "8a5ebeda-206c-4318-bf55-86a694dc4892",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2320,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Dermatologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "014259f7-0a12-44a9-b4be-b484effccc3e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Dermatologist"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Cardiologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "b4dce6fb-af85-42de-834d-e5ffa4bb5b60"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cardiologist"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Neurologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "a30dbf95-29f9-4458-8815-aab0905a3a1e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Neurologist"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "ENT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "753d17b0-f71d-4de8-bccd-830b94599fd7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ENT"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Gastrologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "22fd88e4-dd7b-41f9-8608-7d98126622a3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Gastrologist"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Endocrinologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "4c9b08c1-60e4-4fc9-9c51-f7013b44cb2b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Endocrinologist"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Gynecologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "edeca903-85fc-4003-824d-abe94303ee26"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Gynecologist"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Orthopedic",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "55892254-aec5-40dc-8ad3-69bdf3610a7e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Orthopedic"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "General Physician",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "ad3eb467-21df-4429-8955-95c20ce56228"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "General Physician"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Pediatrician",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "e50ad0ea-0e10-4c6b-879d-b1b0e9784175"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Pediatrician"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Psychologist",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "0122f09f-b821-4077-842f-006cbde55ac4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Psychologist"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c9a96ad7-4ac1-402f-9827-37ac7fb72ae2",
+      "name": "Route to Specialist",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1488,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Dermatologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: severe allergic reactions, extensive burns, rapidly spreading rashes with fever, signs of infection spreading."
+        }
+      },
+      "id": "96ea3dda-04ba-437f-8456-b075d5302197",
+      "name": "Dermatologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Cardiologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: chest pain, severe shortness of breath, irregular heartbeat with dizziness, signs of heart attack or stroke."
+        }
+      },
+      "id": "e1faaa6f-545c-4ee7-8e24-f1637d4b43d6",
+      "name": "Cardiologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Neurologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: sudden severe headache, loss of consciousness, seizures, stroke symptoms, sudden vision loss, severe confusion."
+        }
+      },
+      "id": "1117c607-0256-43a0-8708-3f11b63f8798",
+      "name": "Neurologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Workflow Configuration').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist ENT (Ear, Nose, Throat) AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: severe throat swelling, difficulty breathing, foreign object lodged, severe bleeding, sudden hearing loss."
+        }
+      },
+      "id": "d4e05752-a344-45b8-82fc-910ad10760b9",
+      "name": "ENT Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Gastrologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: severe abdominal pain, blood in vomit or stool, signs of appendicitis, severe dehydration, suspected poisoning."
+        }
+      },
+      "id": "fc657c3c-36e2-45cb-a0be-127ef3b71e10",
+      "name": "Gastrologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Endocrinologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: diabetic emergency, thyroid storm, severe hypoglycemia, adrenal crisis."
+        }
+      },
+      "id": "51bb44c8-a750-4424-9927-1df515550013",
+      "name": "Endocrinologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Gynecologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: severe bleeding, pregnancy complications, severe pelvic pain, signs of ectopic pregnancy."
+        }
+      },
+      "id": "46932288-658d-4b32-ab95-fe0666623442",
+      "name": "Gynecologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        1696
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Orthopedic AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: suspected fracture, severe joint dislocation, spinal injury, severe trauma, loss of limb function."
+        }
+      },
+      "id": "d77037cd-3db3-4ade-ac1d-1a03334f34ac",
+      "name": "Orthopedic Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        2016
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a General Physician AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: high fever with severe symptoms, difficulty breathing, severe pain, signs of serious infection."
+        }
+      },
+      "id": "de8e26d9-385e-42ac-b547-61522b72aa7f",
+      "name": "General Physician Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Pediatrician AI assistant. Analyze the child patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: difficulty breathing, high fever in infants, severe dehydration, seizures, loss of consciousness."
+        }
+      },
+      "id": "c2315702-54ed-4f2b-9598-095dda2c6cbd",
+      "name": "Pediatrician Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        2688
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Patient Input Webhook').item.json.body.text }}",
+        "options": {
+          "systemMessage": "You are a specialist Psychologist AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\n\nYour response must be in JSON format with these fields:\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": \"Home remedies for mild cases\",\n  \"herbalTreatments\": \"Herbal treatment options\",\n  \"yoga\": \"Recommended yoga practices\",\n  \"exercise\": \"Exercise recommendations\",\n  \"lifestyleChanges\": \"Lifestyle modifications\",\n  \"diet\": \"Dietary recommendations\",\n  \"firstAid\": \"First aid procedures (for emergency cases)\",\n  \"emergencyReason\": \"Why this is an emergency (for emergency cases)\"\n}\n\nMark as emergency if: suicidal thoughts, severe psychotic episode, immediate danger to self or others, severe panic attack."
+        }
+      },
+      "id": "1bba4420-50b0-479e-8627-36db807af122",
+      "name": "Psychologist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        2992
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.severity }}",
+              "rightValue": "emergency",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1971a58e-f72b-42ec-93d3-3e078d455f7e",
+      "name": "Check Emergency - Cardiologist",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1856,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Workflow Configuration').first().json.patientEmail }}",
+        "subject": "URGENT: Medical Emergency Alert",
+        "message": "=⚠️ Important Medical Notice⚠️\n\nDear Patient,\n\nThe symptoms you submitted indicate that you may need prompt medical evaluation. \n\nAssessment Summary:\n\n{{ $json.output }} \n\nWe recommend that you visit the nearest emergency department or contact local emergency services for further assistance. \n\nPreliminary First Aid Guidance:\n{{ $json.output }}\n\nThis is an automated notification from Medilens Hospital.\n\nIf you have already sought medical care, kindly disregard this message.",
+        "options": {}
+      },
+      "id": "1aa91044-62b9-4ea5-a7e5-ad0eb8baf13f",
+      "name": "Send Patient Warning Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2384,
+        928
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": null,
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Workflow Configuration').first().json.doctorEmail }}",
+        "subject": "CRITICAL: ⚠️Patient Emergency Alert⚠️",
+        "message": "=⚠️CRITICAL PATIENT ALERT⚠️\n\nA patient has been flagged as requiring emergency care.\n\nPatient Email: {{ $('Workflow Configuration').first().json.patientEmail }}\n\nDiagnosis:\n{{ $json.output }}\n\nEmergency Reason:\n{{ $json.output }}\n\nPlease contact the patient immediately or prepare for emergency admission.\n\nAutomated Hospital triage system",
+        "options": {}
+      },
+      "id": "b39bd819-05cf-4fd8-ade2-6f13fdeff5d8",
+      "name": "Send Doctor Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2640,
+        928
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": null,
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "bookingLink",
+              "value": "={{ $('Workflow Configuration').first().json.bookingUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "emergencyStatus",
+              "value": "CRITICAL - Immediate Attention Required",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "emailsSent",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a77bd02c-3ecc-478a-9f8f-f3dd9605a1be",
+      "name": "Prepare Booking Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2880,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "09382177-6c8a-4361-8606-ebc97ba86f04",
+      "name": "Return Emergency Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2160,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        2496
+      ],
+      "id": "7a74b936-f8bc-460f-a0a3-f40e8aaed519",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        1872
+      ],
+      "id": "37a027c5-7e50-4161-b460-214bc6bfe237",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        2176
+      ],
+      "id": "ab43b9d2-dedf-43a3-b64f-7587848d35f4",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        2800
+      ],
+      "id": "939913ad-5da5-4483-b3d3-c4a63fdd5e69",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        3168
+      ],
+      "id": "f37aae9e-cf59-4c8e-9cda-c5c8a121b36d",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        1552
+      ],
+      "id": "35896541-84da-46ec-9432-f0964c97e9b8",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        1264
+      ],
+      "id": "fabb7e7c-c945-4fc8-a960-6f8b61e99666",
+      "name": "Google Gemini Chat Model7",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        944
+      ],
+      "id": "959ed71d-66d0-4342-8211-d7e536ea18ee",
+      "name": "Google Gemini Chat Model8",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        640
+      ],
+      "id": "2041d873-0713-4c83-9295-b3504ced15ea",
+      "name": "Google Gemini Chat Model9",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        304
+      ],
+      "id": "4e857320-981e-42bf-8dcc-913277e409ac",
+      "name": "Google Gemini Chat Model10",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -16
+      ],
+      "id": "0d738d4b-a112-4504-9bea-89df938e936e",
+      "name": "Google Gemini Chat Model11",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2368,
+        1488
+      ],
+      "id": "d937d218-481b-468e-9c2f-a274d48d1c48",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2128,
+        1440
+      ],
+      "id": "83d28404-1fa0-4816-a8de-20b29a06c965",
+      "name": "Google Gemini Chat Model12",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Patient Input Webhook').item.json.query.sessionId }}"
+      },
+      "id": "a63d3269-8d0d-44be-bfe3-b1c1ef029751",
+      "name": "Triage Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1968,
+        1520
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// This assumes your input is { output: '...json string...' }\n// Remove Markdown code fences from the JSON string in the 'output' field and parse it\nlet raw = $json.output || '';\nraw = raw.replace(/^```json\\s*|^```\\s*|```$/gm, '').trim();\n\nlet obj;\ntry {\n  obj = JSON.parse(raw);\n} catch (e) {\n  obj = {}; // Fallback if parsing fails\n}\nreturn { json: obj };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        1296
+      ],
+      "id": "a8698188-24b4-4ff2-bafe-8ceead77a94e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fedd111e-b658-429c-ab93-56d9d84e0c1b",
+              "name": "diagnosis",
+              "value": "={{ $json.diagnosis }}",
+              "type": "string"
+            },
+            {
+              "id": "c5de0704-999c-4d8c-85e6-5e311776fc57",
+              "name": "severity",
+              "value": "={{ $json.severity }}",
+              "type": "string"
+            },
+            {
+              "id": "be3af3ec-948b-410a-9fba-52c8556c6696",
+              "name": "=homeRemedies",
+              "value": "={{ Array.isArray($json.homeRemedies) ? $json.homeRemedies : [$json.homeRemedies] }}",
+              "type": "array"
+            },
+            {
+              "id": "475a3b1d-3443-4ef7-86cb-ced331eba419",
+              "name": "=herbalTreatments",
+              "value": "={{ Array.isArray($json.herbalTreatments) ? $json.herbalTreatments : [$json.herbalTreatments] }}",
+              "type": "array"
+            },
+            {
+              "id": "ab6c56dc-3a80-4e1c-8d14-aea686bda7a3",
+              "name": "=yoga",
+              "value": "={{ Array.isArray($json.yoga) ? $json.yoga : [$json.yoga] }}",
+              "type": "array"
+            },
+            {
+              "id": "f55ad3cb-d785-4b8f-9732-7437a973884e",
+              "name": "=exercise",
+              "value": "={{ Array.isArray($json.exercise) ? $json.exercise : [$json.exercise] }}",
+              "type": "array"
+            },
+            {
+              "id": "72a39ab9-7055-4125-9ed3-360d234b0d42",
+              "name": "=lifestyleChanges\n",
+              "value": "={{ Array.isArray($json.lifestyleChanges) ? $json.lifestyleChanges : [$json.lifestyleChanges] }}",
+              "type": "array"
+            },
+            {
+              "id": "b0d0566e-e2e5-46f3-9c34-3dad69c43d80",
+              "name": "=diet",
+              "value": "={{ Array.isArray($json.diet) ? $json.diet : [$json.diet] }}",
+              "type": "array"
+            },
+            {
+              "id": "d90f4108-5a14-4bc7-9a45-ffb7c5e42585",
+              "name": "firstAid",
+              "value": "={{ $json.firstAid }}",
+              "type": "string"
+            },
+            {
+              "id": "2d72fa39-83ac-496f-a0df-d4c922b205cd",
+              "name": "emergencyReason",
+              "value": "={{ $json.emergencyReason }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1536,
+        1296
+      ],
+      "id": "03118bdc-ba27-4e4c-8a22-c225bbdd759c",
+      "name": "Edit Fields1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=symptoms:  {{ $json.body.text }}",
+        "options": {
+          "systemMessage": "You are a medical triage assistant for a hospital\n After the patient answers your follow-up questions, analyze all information from the conversation history and output EXACTLY ONE of the following specialist names and nothing else:\nAvailable specialists:\n- Dermatologist (skin conditions)\n- Cardiologist (heart and cardiovascular issues)\n- Neurologist (brain and nervous system)\n- ENT (ear, nose, throat)\n- Gastrologist (digestive system)\n- Endocrinologist (hormones and metabolism)\n- Gynecologist (women's health)\n- Orthopedic (bones, joints, muscles)\n- General Physician (general health issues)\n- Pediatrician (children's health)\n- Psychologist (mental health)\n\nYour final response in Phase 2 must be EXACTLY ONE of these specialist names and NOTHING ELSE. No explanation, no additional text, just the specialist name."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -2032,
+        1264
+      ],
+      "id": "2929af4f-e97f-4ca4-b415-cddfe3b3a1df",
+      "name": "specialist selector"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Patient Input Webhook": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "specialist selector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Specialist": {
+      "main": [
+        [
+          {
+            "node": "Dermatologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cardiologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Neurologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ENT Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gastrologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Endocrinologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gynecologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Orthopedic Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "General Physician Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pediatrician Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Psychologist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dermatologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cardiologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Neurologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ENT Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gastrologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Endocrinologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gynecologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orthopedic Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "General Physician Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pediatrician Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Psychologist Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Emergency - Cardiologist": {
+      "main": [
+        [
+          {
+            "node": "Send Patient Warning Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Return Emergency Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Patient Warning Email": {
+      "main": [
+        [
+          {
+            "node": "Send Doctor Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Doctor Alert Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Booking Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "General Physician Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gynecologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orthopedic Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Pediatrician Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Psychologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Endocrinologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gastrologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ENT Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Neurologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model10": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Cardiologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model11": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Dermatologist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model12": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "specialist selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "specialist selector",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Check Emergency - Cardiologist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "specialist selector": {
+      "main": [
+        [
+          {
+            "node": "Route to Specialist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
