@@ -1,0 +1,755 @@
+{
+  "name": "Medilens RAG Agent - Public Version",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_DRIVE_FILE_ID_HERE",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -5632,
+        -4288
+      ],
+      "id": "2a6e40b4-959d-4646-957c-e5eb48d87252",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": null,
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -5376,
+        -4288
+      ],
+      "id": "175be167-cd25-4c3a-8bcf-d26cd26f489c",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": null,
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -5328,
+        -4064
+      ],
+      "id": "636c2a04-dfc8-482c-918b-46455fc2eec6",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -5328,
+        -4640
+      ],
+      "id": "6b084fdd-f37d-46a3-bf3c-38ad52f57405",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -5952,
+        -4288
+      ],
+      "id": "4a42cb95-31ae-4a40-8926-c2b4cb27e59e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -5696,
+        -4752
+      ],
+      "id": "62b94d09-f302-448e-b065-8a35cc2c302a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "retrieve answers for the query from chat input",
+        "tableName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "documents"
+        },
+        "topK": 2,
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -5344,
+        -4784
+      ],
+      "id": "dc454914-05a9-4e56-839e-1b83fd3cd200",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": null,
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -5520,
+        -4736
+      ],
+      "id": "8aba5502-c5d3-4b36-a78b-742f7f72db35",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": null,
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "11a2fa1a-a65a-4806-b69c-96b9b7c90946",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "not satisfied",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "ef2efd2b-4b4d-4485-b039-d70009f7d590",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "complain",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "0bc5436d-9b92-4f48-ba05-4f918eb98690",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "customer service agent",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "c6ffb33a-376b-4ea9-8b5a-9160b11c7daf",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "talk, person",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "2c7892bd-5e70-4ca6-ba06-a1c3a5b112a2",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "human",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "7cced68e-c185-48b3-856b-6eb542373120",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "someone",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -4656,
+        -4960
+      ],
+      "id": "f63bd8e0-fcec-4598-ae7e-f34e0b0cf004",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5ff69681-8572-4296-88b6-dc1e598ec846",
+              "name": "formatted_chat",
+              "value": "={{ \n  $json.message && $json.message.type && $json.message.content\n    ? ($json.message.type === \"human\" \n        ? `👤 User: ${$json.message.content}` \n        : $json.message.type === \"ai\" \n          ? `🤖 Bot: ${$json.message.content}` \n          : \"⚠️ No chat data found.\"\n      )\n    : \"⚠️ No chat data found.\"\n}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3712,
+        -5248
+      ],
+      "id": "c9544e67-e570-458a-9c51-19711904ff45",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "n8n_chat_histories",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.session_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -3952,
+        -5248
+      ],
+      "id": "70790699-4cd1-4242-82a0-66a3ef2bdf00",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": null,
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -4208,
+        -4800
+      ],
+      "id": "c7f46bbb-2eec-41e7-9583-247cbced243f",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "admin@example.com",
+        "subject": "Customer Complain - Immediate Attention Required",
+        "message": "=Hi there, I hope this message finds you well.  We have received a complaint from a customer regarding their recent interaction with our chatbot. The customer has expressed dissatisfaction and is requesting further assistance from a human representative.\nDetails: \n\nCustomer Name / ID: {{ $('Append or update row in sheet').item.json.session_id }} \n\nDate/Time of Interaction: {{ $now }}  \n\nSummary of Issue: {{ $json.data.map(item => item.formatted_chat).join(\"<br>\") }}\n\n The customer is upset and requires timely support. Kindly review the case and take the necessary actions to resolve their concerns.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -3216,
+        -5248
+      ],
+      "id": "b44c06de-ed81-499a-8dcf-b052b4f1f67a",
+      "name": "Send a message",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": null,
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID_HERE",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('When chat message received').item.json.sessionId }}"
+          },
+          "matchingColumns": [
+            "session_id"
+          ],
+          "schema": [
+            {
+              "id": "timestamp ",
+              "displayName": "timestamp ",
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "type": "string"
+            },
+            {
+              "id": "user_message",
+              "displayName": "user_message",
+              "type": "string"
+            },
+            {
+              "id": "bot_response",
+              "displayName": "bot_response",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -4288,
+        -5248
+      ],
+      "id": "e22c3047-746c-4bf5-ad31-d4fe3b092cbb",
+      "name": "Append or update row in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -3472,
+        -5248
+      ],
+      "id": "5b1f715d-0024-4351-a0f9-d0fadde7f7f0",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "content": "RAG AGENT\nThis RAG Agent will fetch the exact answers to our quries from our knowledge\nbase so this agent will not hallucinate like other LLMS and give the exact answers\nSupa base is used as data vector store\nPostgres is used to save the context.",
+        "height": 848,
+        "width": 1280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6208,
+        -5280
+      ],
+      "id": "58f4650a-c36e-4207-aebf-ee52fb1202b2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "RAG oipeline\n",
+        "height": 496,
+        "width": 1264,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -6208,
+        -4400
+      ],
+      "id": "3fe858ad-eb3d-427b-8274-5d41b7d6df99",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "##Save Chat History\nThis part of workflow will save all the conversational history\nbetween user and bot and send it to customer service agent \nfor better understanding\nComplaint replier agent will handle the complaints of the user\npatiently and calmly",
+        "height": 944,
+        "width": 1760
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4784,
+        -5328
+      ],
+      "id": "dc158cb7-94bb-4a31-b2a9-3199600ad9ad",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "options": {
+          "systemMessage": "You are the Medilens Hospital virtual assistant.\nAlways greet users warmly without using a personal name.\nWhen someone says hello, hi, hey, or similar, reply with:\n\"Welcome to Medilens Hospital! How can I help you today? Would you like to know about our doctors, departments, or available services?\"\nKeep your tone professional, kind, and helpful.\nDo not introduce yourself by any name.\nwhen user ask any query, use the tool \"Supabase Vector Store\" to answer the question from knowledge base. if user ask questions that are not related to medilens hospital or its attached knowledge base, refuse to answer them humbly and polietly\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -5616,
+        -4960
+      ],
+      "id": "8a0ab1b4-8ae6-45b5-814d-830c1934907d",
+      "name": "RAG Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant. if someone told you about any complain or feel exhausted, angry or unsatisfied and want to forward a complain, then you respond humbly and patiently and response them that their complain has been sent forward. soon we will contact you"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4224,
+        -4976
+      ],
+      "id": "f97695b0-c080-4a42-a208-3fe471d745d7",
+      "name": "Complaint replier Agent"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "RAG",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -5872,
+        -4960
+      ],
+      "id": "9fd59b93-277a-4592-a64f-e5a8fffe7998",
+      "name": "Webhook",
+      "webhookId": "REPLACE_WITH_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -3888,
+        -4976
+      ],
+      "id": "aaa0d39e-8703-4a41-9e34-23913607c6a6",
+      "name": "Respond to Website"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}\n \n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -4272,
+        -4592
+      ],
+      "id": "2b9eed25-6549-4706-8057-de47d0d4dbae",
+      "name": "Respond to Website1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -6592,
+        -4896
+      ],
+      "id": "9c876126-4e47-4bfa-b5b8-6211ad136da2",
+      "name": "When chat message received",
+      "webhookId": "REPLACE_WITH_CHAT_WEBHOOK_ID"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RAG Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "RAG Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Complaint replier Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Website1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Complaint replier Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "RAG Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complaint replier Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
