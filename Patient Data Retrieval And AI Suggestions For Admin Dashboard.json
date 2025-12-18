@@ -1,0 +1,2611 @@
+{
+  "name": "Patient Data Retrieval And AI Suggestions For Admin Dashboard",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        832,
+        976
+      ],
+      "id": "df684ad0-f63c-4529-8456-990ee40451e0",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "11VgCa_UfB5TjOiky_ZsYySUvJHJOuHc72xzcjbOZDAY",
+          "mode": "list",
+          "cachedResultName": "Doctors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11VgCa_UfB5TjOiky_ZsYySUvJHJOuHc72xzcjbOZDAY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11VgCa_UfB5TjOiky_ZsYySUvJHJOuHc72xzcjbOZDAY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        192
+      ],
+      "id": "ae7e3e61-e801-415e-bbf9-0fa92aca5576",
+      "name": "Get Doctors Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1dDeGwWEqD7eVK74017hvorvIVW27j6LxqzdQLGU7SVA",
+          "mode": "list",
+          "cachedResultName": "Nurses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dDeGwWEqD7eVK74017hvorvIVW27j6LxqzdQLGU7SVA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dDeGwWEqD7eVK74017hvorvIVW27j6LxqzdQLGU7SVA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        368
+      ],
+      "id": "3c6196d8-c1cc-4591-9eee-2534087f6d32",
+      "name": "Get Nurses Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1e9SfF3j9V8t0WJQP1KyljLuaUBTrcXBGrr0jnIH-62w",
+          "mode": "list",
+          "cachedResultName": "Patients",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e9SfF3j9V8t0WJQP1KyljLuaUBTrcXBGrr0jnIH-62w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e9SfF3j9V8t0WJQP1KyljLuaUBTrcXBGrr0jnIH-62w/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        528
+      ],
+      "id": "54a4ecf9-639d-4de7-b374-f4d1d519ef78",
+      "name": "Get Patients Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1x4_OUIcok0u5qI-lyUdbc_OnzjVyI1Q2ySV3qO0UcEk",
+          "mode": "list",
+          "cachedResultName": "Beds",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4_OUIcok0u5qI-lyUdbc_OnzjVyI1Q2ySV3qO0UcEk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4_OUIcok0u5qI-lyUdbc_OnzjVyI1Q2ySV3qO0UcEk/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        672
+      ],
+      "id": "7e5cb028-e828-4b41-9ab0-b14360312b64",
+      "name": "Get Beds Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1waxV9E2KO5ehQF62YMaGBw7ydwQMDPqg0EllIx9BmDo",
+          "mode": "list",
+          "cachedResultName": "book appointment",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1waxV9E2KO5ehQF62YMaGBw7ydwQMDPqg0EllIx9BmDo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1waxV9E2KO5ehQF62YMaGBw7ydwQMDPqg0EllIx9BmDo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        976
+      ],
+      "id": "6b863f8c-f650-47c4-9cbd-93edddd195f6",
+      "name": "Get Book Appointment Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json[\"mergedText\"]}}",
+        "options": {
+          "systemMessage": "You are a hospital admin assistant AI analyzing operational data.\n\nYour task: Generate AI suggestions for hospital operations based on the provided data.\n\nCRITICAL OUTPUT REQUIREMENT:\nYou MUST return ONLY a valid JSON array of suggestion objects. Each suggestion must have this exact structure:\n\n[\n  {\n    \"suggestionId\": \"SUG001\",\n    \"relatedSheet\": \"Risk Patients\",\n    \"entityId\": \"241747\",\n    \"patientName\": \"Ura Palmer\",\n    \"action\": \"Monitor high-risk patient\",\n    \"reason\": \"High risk with symptoms: Palpitations\",\n    \"details\": \"Ura Palmer (Session ID: 241747) has High risk with symptoms: Palpitations.\",\n    \"critical\": \"True\",\n    \"approved\": \"False\",\n    \"assignedTo\": \"\",\n    \"timestamp\": \"2025-12-07 15:30:00\",\n    \"executed\": \"False\",\n    \"executedAt\": \"\",\n    \"notes\": \"\"\n  }\n]\n\nRULES:\n1. Return ONLY the JSON array - no markdown, no explanations, no extra text\n2. Do NOT wrap in code blocks or backticks\n3. All field values must be strings (use \"True\"/\"False\" for booleans)\n4. Generate suggestions for: high-risk patients, overloaded doctors, bed assignments, appointment conflicts\n5. Use sequential IDs: SUG001, SUG002, SUG003, etc.\n6. Set critical=\"True\" only for urgent medical situations\n7. Always set approved=\"False\" and executed=\"False\" for new suggestions\n8. Use ISO format for timestamps: YYYY-MM-DD HH:MM:SS"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        832,
+        800
+      ],
+      "id": "2549f77e-9471-4ca5-bc6e-68d1a9eef61e",
+      "name": "Admin Assistant"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiOutput = $json.output;\nlet suggestions = [];\n\ntry {\n  let cleanOutput = aiOutput.trim();\n  if (cleanOutput.startsWith('```')) {\n    cleanOutput = cleanOutput.replace(/```json\\n?/g, '').replace(/```\\n?/g, '');\n  }\n  suggestions = JSON.parse(cleanOutput);\n  if (!Array.isArray(suggestions)) {\n    suggestions = [suggestions];\n  }\n} catch (error) {\n  console.error('Failed to parse AI output as JSON:', error);\n  return [{ json: { error: 'Failed to parse AI suggestions', rawOutput: aiOutput } }];\n}\n\nreturn suggestions.map(suggestion => ({\n  json: {\n    suggestionId: suggestion.suggestionId || '',\n    relatedSheet: suggestion.relatedSheet || '',\n    entityId: String(suggestion.entityId || ''),\n    patientName: suggestion.patientName || '',\n    action: suggestion.action || '',\n    reason: suggestion.reason || '',\n    details: suggestion.details || '',\n    critical: String(suggestion.critical || 'False'),\n    approved: String(suggestion.approved || 'False'),\n    assignedTo: suggestion.assignedTo || '',\n    timestamp: suggestion.timestamp || new Date().toISOString().replace('T', ' ').substring(0, 19),\n    executed: String(suggestion.executed || 'False'),\n    executedAt: suggestion.executedAt || '',\n    notes: suggestion.notes || ''\n  }\n}));"
+      },
+      "id": "fd501869-4b13-4d6f-9433-9b2fce3c186e",
+      "name": "Parse AI Suggestions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all input items\nconst allItems = $input.all();\n\n// Return all items as-is without combining\nreturn allItems.map(item => ({ json: item.json }));"
+      },
+      "id": "be48206b-839c-40c1-8a5c-142e7d4ba6fa",
+      "name": "Format Response for Website",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items from the merged data\nconst allItems = $input.all();\n\n// Organize data by sheet type based on the structure\nconst doctors = [];\nconst nurses = [];\nconst patients = [];\nconst beds = [];\nconst riskPatients = [];\nconst appointments = [];\n\n// Process each item and categorize based on available fields\nfor (const item of allItems) {\n  const data = item.json;\n  \n  // Identify data type based on unique fields\n  if (data.doctor_id) {\n    doctors.push({\n      doctor_id: data.doctor_id,\n      name: data.name,\n      specialty: data.specialty,\n      current_load: data.current_load,\n      max_load: data.max_load,\n      department: data.department,\n      status: data.status\n    });\n  }\n  \n  if (data.nurse_id) {\n    nurses.push({\n      nurse_id: data.nurse_id,\n      name: data.name,\n      shift: data.shift,\n      department: data.department,\n      status: data.status,\n      current_patients: data.current_patients\n    });\n  }\n  \n  if (data.patient_id) {\n    patients.push({\n      patient_id: data.patient_id,\n      name: data.name,\n      age: data.age,\n      gender: data.gender,\n      risk_level: data.risk_level,\n      symptoms: data.symptoms,\n      department: data.department,\n      status: data.status,\n      assigned_bed: data.assigned_bed,\n      assigned_doctor: data.assigned_doctor,\n      timestamp: data.timestamp\n    });\n  }\n  \n  if (data.bed_id) {\n    beds.push({\n      bed_id: data.bed_id,\n      type: data.type,\n      status: data.status,\n      patient_id: data.patient_id,\n      department: data.department\n    });\n  }\n  \n  if (data.sessionId && data.riskLevel) {\n    riskPatients.push({\n      sessionId: data.sessionId,\n      patientName: data.patientName,\n      age: data.age,\n      symptoms: data.symptoms,\n      riskLevel: data.riskLevel,\n      summary: data.summary,\n      reason: data.reason,\n      department: data.department,\n      timestamp: data.timestamp\n    });\n  }\n  \n  if (data['Session ID'] && data['Patient Name']) {\n    appointments.push({\n      sessionId: data['Session ID'],\n      patientName: data['Patient Name'],\n      contact: data.Contact,\n      doctor: data.Doctor,\n      department: data.Department,\n      appointmentDate: data['Appointment Date'],\n      time: data.Time,\n      status: data.Status,\n      doctorAvailability: data['Doctor Availability'],\n      rescheduledDateTime: data['Rescheduled Date/Time'],\n      createdAt: data['Created At'],\n      updatedAt: data['Updated At'],\n      notes: data.Notes\n    });\n  }\n}\n\n// Create structured text for AI processing\nconst mergedText = `\nHospital Data Summary:\n\nDoctors (${doctors.length} total):\n${JSON.stringify(doctors, null, 2)}\n\nNurses (${nurses.length} total):\n${JSON.stringify(nurses, null, 2)}\n\nPatients (${patients.length} total):\n${JSON.stringify(patients, null, 2)}\n\nBeds (${beds.length} total):\n${JSON.stringify(beds, null, 2)}\n\nRisk Patients (${riskPatients.length} total):\n${JSON.stringify(riskPatients, null, 2)}\n\nAppointments (${appointments.length} total):\n${JSON.stringify(appointments, null, 2)}\n\nPlease analyze this data and provide:\n1. Critical alerts for high-risk situations\n2. AI suggestions for optimization\n3. Dashboard-ready formatted data\n`;\n\nreturn [{\n  json: {\n    mergedText: mergedText,\n    doctors: doctors,\n    nurses: nurses,\n    patients: patients,\n    beds: beds,\n    riskPatients: riskPatients,\n    appointments: appointments,\n    totalRecords: allItems.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        592
+      ],
+      "id": "01e78a52-5179-49a8-813e-6a11060aa6c1",
+      "name": "Flatten Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM",
+          "mode": "list",
+          "cachedResultName": "AI suggestion",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "suggestionId"
+          ],
+          "schema": [
+            {
+              "id": "suggestionId",
+              "displayName": "suggestionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relatedSheet",
+              "displayName": "relatedSheet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "entityId",
+              "displayName": "entityId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patientName",
+              "displayName": "patientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved/Rejected",
+              "displayName": "Approved/Rejected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "assignedTo",
+              "displayName": "assignedTo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executed",
+              "displayName": "executed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executedAt",
+              "displayName": "executedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approved",
+              "displayName": "Approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "approved",
+              "displayName": "approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        448
+      ],
+      "id": "629403fe-6677-4865-83fd-f6acf8a2c8cc",
+      "name": "Append/update row in AI Suggestions"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1808,
+        528
+      ],
+      "id": "ce384dbc-14a8-4990-9023-57e113c9d8a8",
+      "name": "Send To Command Centre"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1wPh2cd2JKl2Rx4adefBmAyYeDI4OCq1Crhbqv4fCH9w",
+          "mode": "list",
+          "cachedResultName": "risk patient",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wPh2cd2JKl2Rx4adefBmAyYeDI4OCq1Crhbqv4fCH9w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wPh2cd2JKl2Rx4adefBmAyYeDI4OCq1Crhbqv4fCH9w/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        64,
+        832
+      ],
+      "id": "50b619b1-f83b-4f04-ae13-49ede8dd0458",
+      "name": "Get Risk Patient Data"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "smarter-alert",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        544
+      ],
+      "id": "439831d0-f93d-4c29-a800-25f0ee32f93a",
+      "name": "Smarter Alert Webhook",
+      "webhookId": "7f959c3d-2ef5-4c95-93c3-25e5afefca26"
+    },
+    {
+      "parameters": {
+        "numberInputs": 6
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        432,
+        448
+      ],
+      "id": "f14da347-8278-4529-9ff9-fee6c4bee152",
+      "name": "Merge Hospital Data"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        528
+      ],
+      "id": "5ecac30d-5574-4a6b-81ff-3c88b6eb5ec3",
+      "name": "Combine AI Suggestions & Hospital Data"
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nAI Analysis\n\nUses AI to analyze hospital data and generate structured suggestions for high-risk patients, doctor overload, bed assignments, and appointment conflicts.\n\n",
+        "height": 432,
+        "width": 656,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        752,
+        784
+      ],
+      "typeVersion": 1,
+      "id": "98966a26-a630-4e63-bdc2-96ce6ee70176",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Sheet Update / Storage\n\nUpdates or appends AI-generated suggestions into the Google Sheet for tracking and review.\n",
+        "height": 304,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1264,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "daf32c69-b33e-42f7-ad58-a5a03bba4297",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Trigger\n\nReceives POST requests from the dashboard to trigger the workflow for hospital operational alerts.\n",
+        "height": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -432,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "a7886765-31b3-4342-9501-f5dd418f820f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Data Retrieval (Google Sheets)\n\nFetches all hospital operational data from Google Sheets, including doctors, nurses, patients, beds, high-risk patients, and appointments.\n",
+        "height": 1136,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "9530d654-3883-467b-8081-175066d9e88a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": " Data Processing / Flattening\n\nCombines, categorizes, and structures data from all sheets into JSON arrays, preparing it for AI analysis and dashboard output.\n",
+        "height": 384,
+        "width": 576,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        336
+      ],
+      "typeVersion": 1,
+      "id": "6e8d3bc6-56b1-49c5-ab84-f50382c19e91",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Dashboard Output\n\nPrepares and sends the final JSON data to the dashboard for display, combining raw data and AI suggestions.\n",
+        "height": 304,
+        "width": 368,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1568,
+        384
+      ],
+      "typeVersion": 1,
+      "id": "b815accb-764c-49d7-ae3b-26d90bf0d3db",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "admin-appproval",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        2240
+      ],
+      "id": "02718994-02e5-4969-9287-0f41003a3353",
+      "name": "Admin Approval Webhook",
+      "webhookId": "f84aa150-5509-4763-8d60-d45c3fae2d66"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff143055-beaa-43db-84a9-1a0bd439a5c5",
+              "leftValue": "={{ $json.query.approve }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        2240
+      ],
+      "id": "609be427-fbbf-4ade-a675-8e1fbd8b5bce",
+      "name": "Check Approval Action"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4d511d90-a3ed-40bf-bc84-acd3326ef396",
+              "name": "suggestionId",
+              "value": "={{ $json.body.suggestionId }}",
+              "type": "string"
+            },
+            {
+              "id": "7d03a9ac-f98e-49ff-b7f7-cff0cf98ceb3",
+              "name": "Approved/Rejected",
+              "value": "={{ $json.body.status }}",
+              "type": "string"
+            },
+            {
+              "id": "a47efdb6-96ac-4cbc-8d5f-a1b5d389b60b",
+              "name": "note",
+              "value": "={{ $json.body.note }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        2096
+      ],
+      "id": "80cb1b8f-36d5-425d-ac99-3ed28628a059",
+      "name": "Extract Approval Data"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2432,
+        2256
+      ],
+      "id": "d73c9c55-c1df-4c30-bac5-93787fc70630",
+      "name": "Send Response to Admin"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      suggestionId: item.json.suggestionId,\n      status: item.json[\"Approved/Rejected\"]  // Approved / Rejected column\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        2256
+      ],
+      "id": "992f0a30-b50c-4326-82b0-7b1cbbdd11bf",
+      "name": "Prepare Suggestion Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => ({\n  json: {\n    relatedSheet: item.json[\"relatedSheet\"],\n    action: item.json[\"action\"],\n    entityId: item.json[\"entityId\"],\n    approvalStatus: item.json[\"Approved/Rejected\"] || \"\"\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        2096
+      ],
+      "id": "72920571-f049-4962-8df6-bd8949e51e95",
+      "name": "Format Suggestion Data"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.relatedSheet }}",
+                    "rightValue": "Appointments",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "29c2a9e3-83b6-44f7-83cc-df6567092ab2"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Appointments"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "aab36404-a857-4fd6-bfa1-59ae80942215",
+                    "leftValue": "={{ $json.relatedSheet }}",
+                    "rightValue": "Risk Patients",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Risk Patients"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2ac823d3-58cb-457e-a184-3c12566a4908",
+                    "leftValue": "={{ $json.relatedSheet }}",
+                    "rightValue": "Patients",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Patients"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4718cfee-f4d7-432a-980f-c5c208b2e5e2",
+                    "leftValue": "={{ $json.relatedSheet }}",
+                    "rightValue": "Beds",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Beds"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6f6d311b-94c8-4d98-a795-ca047c456425",
+                    "leftValue": "={{ $json.relatedSheet }}",
+                    "rightValue": "Nurses",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Nurses"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e4cefc0d-24c6-4368-96cf-1719532b7e40",
+                    "leftValue": "={{ $json.relatedSheet }}",
+                    "rightValue": "Doctors",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Doctors"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1952,
+        2032
+      ],
+      "id": "359e9e34-944f-46cd-8f0c-99d43434327d",
+      "name": "Route to Correct Sheet"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM",
+          "mode": "list",
+          "cachedResultName": "AI suggestion",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "suggestionId": "={{ $('Fetch Suggestion Row').item.json.suggestionId }}",
+            "approved": "={{ $json.Approved }}",
+            "executed": "={{ $json.Executed }}",
+            "executedAt": "={{ $json.ExecutedAt }}"
+          },
+          "matchingColumns": [
+            "suggestionId"
+          ],
+          "schema": [
+            {
+              "id": "suggestionId",
+              "displayName": "suggestionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relatedSheet",
+              "displayName": "relatedSheet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "entityId",
+              "displayName": "entityId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "patientName",
+              "displayName": "patientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "approved",
+              "displayName": "approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "assignedTo",
+              "displayName": "assignedTo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "executed",
+              "displayName": "executed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "executedAt",
+              "displayName": "executedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        2096
+      ],
+      "id": "ae22b9a4-f474-4634-8e3f-41b524bc402f",
+      "name": "Update Suggestion Status"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM",
+          "mode": "list",
+          "cachedResultName": "AI suggestion",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "suggestionId",
+              "lookupValue": "={{ $json.suggestionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        2096
+      ],
+      "id": "5fe05f06-1002-4fa4-92b8-54a90aba6283",
+      "name": "Fetch Suggestion Row"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM",
+          "mode": "list",
+          "cachedResultName": "AI suggestion",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Approved/Rejected": "={{ $json.body.status }}",
+            "suggestionId": "={{ $json.body.suggestionId }}",
+            "notes": "={{ $json.body.note }}"
+          },
+          "matchingColumns": [
+            "suggestionId"
+          ],
+          "schema": [
+            {
+              "id": "suggestionId",
+              "displayName": "suggestionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relatedSheet",
+              "displayName": "relatedSheet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "entityId",
+              "displayName": "entityId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patientName",
+              "displayName": "patientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved/Rejected",
+              "displayName": "Approved/Rejected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "assignedTo",
+              "displayName": "assignedTo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executed",
+              "displayName": "executed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executedAt",
+              "displayName": "executedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved",
+              "displayName": "Approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1264,
+        2256
+      ],
+      "id": "43c7779f-551e-4543-bc51-19e167c605a3",
+      "name": "Update Suggestion Status (Path 2)"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM",
+          "mode": "list",
+          "cachedResultName": "AI suggestion",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I2I0VakpvGcUmlGcDFtvw90wPP2s7NBz8T_1t6lqpvM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "suggestionId",
+              "lookupValue": "={{ $json.suggestionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1424,
+        2256
+      ],
+      "id": "581146d7-f7c1-43d8-8880-292325d25e13",
+      "name": "Fetch Suggestion Row (Path 2)"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1waxV9E2KO5ehQF62YMaGBw7ydwQMDPqg0EllIx9BmDo",
+          "mode": "list",
+          "cachedResultName": "book appointment",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1waxV9E2KO5ehQF62YMaGBw7ydwQMDPqg0EllIx9BmDo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1waxV9E2KO5ehQF62YMaGBw7ydwQMDPqg0EllIx9BmDo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "={{ $json.action }}",
+            "Session ID": "{{ $json.entityId }} "
+          },
+          "matchingColumns": [
+            "Session ID"
+          ],
+          "schema": [
+            {
+              "id": "Session ID",
+              "displayName": "Session ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact",
+              "displayName": "Contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor",
+              "displayName": "Doctor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Date",
+              "displayName": "Appointment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor Availability",
+              "displayName": "Doctor Availability",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rescheduled Date/Time",
+              "displayName": "Rescheduled Date/Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Updated At",
+              "displayName": "Updated At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2256,
+        1616
+      ],
+      "id": "70c9a7f3-ee41-48e8-a03a-7a1864730260",
+      "name": "Update Appointment Sheet"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1wPh2cd2JKl2Rx4adefBmAyYeDI4OCq1Crhbqv4fCH9w",
+          "mode": "list",
+          "cachedResultName": "risk patient",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wPh2cd2JKl2Rx4adefBmAyYeDI4OCq1Crhbqv4fCH9w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wPh2cd2JKl2Rx4adefBmAyYeDI4OCq1Crhbqv4fCH9w/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sessionid": "={{ $json.entityId }}",
+            "action": "={{ $json.action }}"
+          },
+          "matchingColumns": [
+            "sessionid"
+          ],
+          "schema": [
+            {
+              "id": "sessionid",
+              "displayName": "sessionid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "patientName",
+              "displayName": "patientName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "age",
+              "displayName": "age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "symptoms",
+              "displayName": "symptoms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "riskLevel",
+              "displayName": "riskLevel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2256,
+        1792
+      ],
+      "id": "36afed53-e465-4b16-ba5a-8e3fe55f119d",
+      "name": "Update Risk Patient Sheet"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1e9SfF3j9V8t0WJQP1KyljLuaUBTrcXBGrr0jnIH-62w",
+          "mode": "list",
+          "cachedResultName": "Patients",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e9SfF3j9V8t0WJQP1KyljLuaUBTrcXBGrr0jnIH-62w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e9SfF3j9V8t0WJQP1KyljLuaUBTrcXBGrr0jnIH-62w/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "patient_id": "={{ $json.entityId }}",
+            "action": "={{ $json.action }}"
+          },
+          "matchingColumns": [
+            "patient_id"
+          ],
+          "schema": [
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "age",
+              "displayName": "age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gender",
+              "displayName": "gender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "risk_level",
+              "displayName": "risk_level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "symptoms",
+              "displayName": "symptoms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "assigned_bed",
+              "displayName": "assigned_bed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "assigned_doctor",
+              "displayName": "assigned_doctor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relatedSheet",
+              "displayName": "relatedSheet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "entityId",
+              "displayName": "entityId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2416,
+        1616
+      ],
+      "id": "f151736a-4305-4409-b25f-b8a0546ca4a9",
+      "name": "Update Patient Sheet"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1x4_OUIcok0u5qI-lyUdbc_OnzjVyI1Q2ySV3qO0UcEk",
+          "mode": "list",
+          "cachedResultName": "Beds",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4_OUIcok0u5qI-lyUdbc_OnzjVyI1Q2ySV3qO0UcEk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1x4_OUIcok0u5qI-lyUdbc_OnzjVyI1Q2ySV3qO0UcEk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "bed_id": "{{ $json.entityId }}",
+            "action": "{{ $json.action }}"
+          },
+          "matchingColumns": [
+            "bed_id"
+          ],
+          "schema": [
+            {
+              "id": "bed_id",
+              "displayName": "bed_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2416,
+        1792
+      ],
+      "id": "e91cfe10-33e6-4f92-a36f-dbd1e7042a54",
+      "name": "Update Bed Sheet"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1dDeGwWEqD7eVK74017hvorvIVW27j6LxqzdQLGU7SVA",
+          "mode": "list",
+          "cachedResultName": "Nurses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dDeGwWEqD7eVK74017hvorvIVW27j6LxqzdQLGU7SVA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dDeGwWEqD7eVK74017hvorvIVW27j6LxqzdQLGU7SVA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "action": "{{ $json.action }}",
+            "nurse_id": "{{ $json.entityId }}"
+          },
+          "matchingColumns": [
+            "nurse_id"
+          ],
+          "schema": [
+            {
+              "id": "nurse_id",
+              "displayName": "nurse_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shift",
+              "displayName": "shift",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "current_patients",
+              "displayName": "current_patients",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2256,
+        1968
+      ],
+      "id": "c2037051-e030-4569-aaaa-4486f22f8754",
+      "name": "Update Nurse Sheet"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "11VgCa_UfB5TjOiky_ZsYySUvJHJOuHc72xzcjbOZDAY",
+          "mode": "list",
+          "cachedResultName": "Doctors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11VgCa_UfB5TjOiky_ZsYySUvJHJOuHc72xzcjbOZDAY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11VgCa_UfB5TjOiky_ZsYySUvJHJOuHc72xzcjbOZDAY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "doctor_id": "{{ $json.entityId }}",
+            "action": "{{ $json.action }}"
+          },
+          "matchingColumns": [
+            "doctor_id"
+          ],
+          "schema": [
+            {
+              "id": "doctor_id",
+              "displayName": "doctor_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "specialty",
+              "displayName": "specialty",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "current_load",
+              "displayName": "current_load",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "max_load",
+              "displayName": "max_load",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2416,
+        1968
+      ],
+      "id": "90ec2f3a-664e-4242-bd8d-32af2f7a5a8d",
+      "name": "Update Doctor Sheet"
+    },
+    {
+      "parameters": {
+        "content": "“Admin Approval Intake & Master Sheet Update”\n\nPurpose of this section:\nThis group handles everything that happens when an admin clicks Approve or Reject in the dashboard.\n\nWhat happens here:\n\nThe webhook receives admin action (approve or reject) + suggestionId.\n\nThe IF node checks whether the action is \"approve\" or \"reject\".\n\nThe Set node extracts and cleans required fields (suggestionId + action).\n\nThe master AI Suggestion Sheet is searched for the correct row using suggestionId.\n\nThat row is updated with the new status (Approved/Rejected).\n\nWhy this group is important:\nIt ensures the system captures the admin’s decision accurately, updates the main AI suggestion database, and prepares information for the next stage of routing.",
+        "height": 784,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        832,
+        1648
+      ],
+      "typeVersion": 1,
+      "id": "a5b8dc32-a5fa-41c3-97ad-66ba799161ff",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "“Prepare Data & Route to Correct Entity Sheet”\n\nPurpose of this section:\nThis group prepares the data from the main AI suggestion sheet and decides which specific sheet needs to be updated (Appointments, Patients, Beds, Nurses, Doctors, Risk Patients).\n\nWhat happens here:\n\nThe Merge node assembles the key fields into a single payload.\n\nThe Code node formats the data to extract:\n\nrelatedSheet (which sheet this suggestion belongs to)\n\nentityId\n\naction\n\napproval\n\nThe Switch node uses relatedSheet to route the data to the correct update path.\n\nWhy this group is important:\nIt converts unstructured input into a clean, standardized format and intelligently routes each suggestion to its correct department sheet.",
+        "height": 1008,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1744,
+        1376
+      ],
+      "typeVersion": 1,
+      "id": "7b277b68-5ec6-4e37-89d9-532f0ebf6259",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "“Execute Sheet-Specific Updates”\n\nPurpose of this section:\nThis group updates the exact Google Sheet that needs modification based on the suggestion type.\n\nIncluded Sheets:\n\nAppointments\n\nPatients\n\nRisk Patients\n\nBeds\n\nNurses\n\nDoctors\n\nWhat happens here:\nEach branch receives:\n\nentityId\n\naction (approve or reject)\nThen updates the matching row in its Google Sheet using append/update.\n\nWhy this group is important:\nThis phase actually executes the admin decision in the correct operational department, syncing actions to real hospital data (beds, doctors, nurses, appointments, etc.).",
+        "height": 640,
+        "width": 544,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2608,
+        1488
+      ],
+      "typeVersion": 1,
+      "id": "29aec842-61a6-4cb6-a5da-20d369b27757",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "Purpose of this section:\nThis final group sends back a response to the Admin Dashboard confirming the completion of the suggestion update.\n\nWhat happens here:\n\nThe Respond node sends a structured success message after all updates finish.\n\nWhy this group is important:\nIt ensures the admin UI receives real-time confirmation, improving user experience and preventing duplicate submissions.",
+        "height": 336,
+        "width": 288,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2656,
+        2176
+      ],
+      "typeVersion": 1,
+      "id": "3e8d28d4-3ac8-4505-9a99-5a6b15b7108d",
+      "name": "Sticky Note9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Admin Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Doctors Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Hospital Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Nurses Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Hospital Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Patients Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Hospital Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Get Beds Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Hospital Data",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Get Book Appointment Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Hospital Data",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Admin Assistant": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Append/update row in AI Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response for Website": {
+      "main": [
+        [
+          {
+            "node": "Send To Command Centre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Data": {
+      "main": [
+        [
+          {
+            "node": "Admin Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append/update row in AI Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Combine AI Suggestions & Hospital Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Risk Patient Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Hospital Data",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Smarter Alert Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Doctors Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Nurses Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Patients Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Beds Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Risk Patient Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Book Appointment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Hospital Data": {
+      "main": [
+        [
+          {
+            "node": "Flatten Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Combine AI Suggestions & Hospital Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine AI Suggestions & Hospital Data": {
+      "main": [
+        [
+          {
+            "node": "Format Response for Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin Approval Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Approval Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Approval Action": {
+      "main": [
+        [
+          {
+            "node": "Extract Approval Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Suggestion Status (Path 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Approval Data": {
+      "main": [
+        [
+          {
+            "node": "Update Suggestion Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Suggestion Payload": {
+      "main": [
+        [
+          {
+            "node": "Send Response to Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Suggestion Data": {
+      "main": [
+        [
+          {
+            "node": "Route to Correct Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Correct Sheet": {
+      "main": [
+        [
+          {
+            "node": "Update Appointment Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Risk Patient Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Patient Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Bed Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Nurse Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Doctor Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Suggestion Status": {
+      "main": [
+        [
+          {
+            "node": "Fetch Suggestion Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Suggestion Row": {
+      "main": [
+        [
+          {
+            "node": "Format Suggestion Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Suggestion Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Suggestion Status (Path 2)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Suggestion Row (Path 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Suggestion Row (Path 2)": {
+      "main": [
+        [
+          {
+            "node": "Prepare Suggestion Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "65542653-cbea-45fe-930d-7e04624c5504",
+  "meta": {
+    "instanceId": "e9ab6c4dc4d73f1768552a87c17213967db1349235852a9e0d48cfd13ab760bd"
+  },
+  "id": "ShuTEvyWHlvOqh1V",
+  "tags": []
+}
