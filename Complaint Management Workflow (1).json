@@ -1,0 +1,1302 @@
+{
+  "name": "Complaint Management Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Operation completed\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "1ac883f0-a975-4c14-a293-e72b44582b51",
+      "name": "Return Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1920,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "449fe7d5-4e7b-4d75-ad0e-da5e452b0e2d",
+              "leftValue": "={{ $json.query }}",
+              "rightValue": "assign",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        736
+      ],
+      "id": "4c7df1a2-6e8c-4cca-8026-7ac8424c4bf4",
+      "name": "Check Action Type"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13292914-2587-44aa-9fe2-9c11bef7e103",
+              "name": "ID",
+              "value": "={{ $json.query.id }}",
+              "type": "string"
+            },
+            {
+              "id": "044ab794-7fe9-4cc1-ab67-5848f1c9899e",
+              "name": "Assignee",
+              "value": "={{ $json.query.assignee }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1216,
+        608
+      ],
+      "id": "9c94768d-628a-429e-ba6d-97b558091eb4",
+      "name": "Prepare Assignee Update Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Contact",
+              "displayName": "Contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Details",
+              "displayName": "Details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Actions",
+              "displayName": "Actions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "headers",
+              "displayName": "headers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "params",
+              "displayName": "params",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "webhookUrl",
+              "displayName": "webhookUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "executionMode",
+              "displayName": "executionMode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CreatedAt",
+              "displayName": "CreatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1392,
+        608
+      ],
+      "id": "2950c6e3-1185-4163-9cdb-b672efc683e2",
+      "name": "Update Google Sheet With Assignee"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{ $json.ID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        608
+      ],
+      "id": "2d4913fb-ad10-4037-9982-64665c97c09d",
+      "name": "Fetch Updated Rows"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst output = items.map(item => {\n    const data = JSON.parse(item.json.body); // parse the body string\n\n    // If action is \"solve\", set Status = \"Solved\"\n    const statusValue = data.action === \"solve\" ? \"Solved\" : \"\";\n\n    return {\n        json: {\n            ID: data.id || \"\",       // map the ID\n            Status: statusValue      // map the Status\n        }\n    };\n});\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        832
+      ],
+      "id": "f430250b-0c64-4719-bd88-f81437dddba9",
+      "name": "Prepare Status Update Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact",
+              "displayName": "Contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Details",
+              "displayName": "Details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Actions",
+              "displayName": "Actions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "headers",
+              "displayName": "headers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "params",
+              "displayName": "params",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "webhookUrl",
+              "displayName": "webhookUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "executionMode",
+              "displayName": "executionMode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1392,
+        832
+      ],
+      "id": "c188c364-5ad2-46bf-b446-e8b915d10999",
+      "name": "Update Google Sheet With Status"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1584,
+        832
+      ],
+      "id": "06af0178-40b5-46fe-999d-7cd542bf0abb",
+      "name": "Fetch Updated Rows With Status"
+    },
+    {
+      "parameters": {
+        "content": "Webhook & Decision\n\nPurpose: Receive complaint data and check if action is “assign” or “solve.”\n",
+        "height": 256,
+        "width": 368,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "67d9cdb1-8f1c-4108-b7b0-46dba2756777",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Assign Action Flow\n\nPurpose: Update assignee in Google Sheets and fetch updated rows for the dashboard.\n",
+        "height": 304,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1184,
+        464
+      ],
+      "typeVersion": 1,
+      "id": "8be8d66c-c3f4-4e93-8901-4ef187e9b4bd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Response\n\nPurpose: Send JSON success response back to the website.",
+        "height": 256,
+        "width": 272,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1856,
+        576
+      ],
+      "typeVersion": 1,
+      "id": "9b7bb0fa-b8ac-40dd-bd34-bc8b624f99bc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSolve Action Flow\n\nPurpose: Update status to “Solved” in Google Sheets and fetch updated rows for the dashboard.\n",
+        "height": 320,
+        "width": 544,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1168,
+        816
+      ],
+      "typeVersion": 1,
+      "id": "d5dea73f-54d3-4836-82bf-4abceee9e744",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "manage-complaints",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        736,
+        736
+      ],
+      "id": "50440d20-a1d9-45ec-9182-f43539732c75",
+      "name": "Receive Complaint Management Webhook",
+      "webhookId": "2ee13999-ffa7-453d-8694-e26e384f8d13"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "complaints",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        112
+      ],
+      "id": "d2dd5d99-64c4-49d9-8f66-e79374aac57d",
+      "name": "Receive Complaint Webhook",
+      "webhookId": "d53ce979-4553-46a8-8985-b85ffd26e813"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "56df3373-4615-41bb-99c4-62fe61715ee8",
+              "leftValue": "={{ $json.query }}",
+              "rightValue": "submit",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        112
+      ],
+      "id": "0e3fd199-4aea-4aa1-9dc9-05011b5d9263",
+      "name": "Check Mode Type"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst output = items.map(item => {\n  const bodyString = item.json.body;      // the full string\n  const data = JSON.parse(bodyString);    // convert string → JSON object\n\n  return {\n    json: {\n      ID: data.ID || \"\",\n      Name: data.Name || \"\",\n      Contact: data.Contact || \"\",\n      Type: data.Type || \"\",\n      Details: data.Details || \"\",\n      Priority: data.Priority || \"\",\n      Status: data.Status ? data.Status.replace(/\"/g, \"\") : \"\",\n      Assignee: data.Assignee || \"\",      // completely replaces \"Assigned To\"\n      \"Created At\": data[\"Created At\"] || \"\",\n      Actions: \"\"\n    }\n  };\n});\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        96
+      ],
+      "id": "3957a662-0028-4b49-8f25-fdc5951e60ee",
+      "name": "Parse Complaint JSON"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact",
+              "displayName": "Contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Details",
+              "displayName": "Details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "assigne",
+              "displayName": "assigne",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Actions",
+              "displayName": "Actions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        96
+      ],
+      "id": "d0e83b7e-babc-4eb7-8c4e-34f8690e437e",
+      "name": "Append/Update Complaint Row"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{ $json.ID }}"
+            },
+            {
+              "lookupColumn": "Name",
+              "lookupValue": "={{ $json.Name }}"
+            },
+            {
+              "lookupColumn": "Contact",
+              "lookupValue": "={{ $json.Contact }}"
+            },
+            {
+              "lookupColumn": "Type",
+              "lookupValue": "={{ $json.Type }}"
+            },
+            {
+              "lookupColumn": "Details",
+              "lookupValue": "={{ $json.Details }}"
+            },
+            {
+              "lookupColumn": "Priority",
+              "lookupValue": "={{ $json.Priority }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "={{ $json.Status }}"
+            },
+            {
+              "lookupColumn": "Assigned To",
+              "lookupValue": "={{ $json['Assigned To'] }}"
+            },
+            {
+              "lookupColumn": "Created At",
+              "lookupValue": "={{ $json['Created At'] }}"
+            },
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{ $json.ID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        944,
+        96
+      ],
+      "id": "b6a39146-b03d-4f30-9a7f-11d5b4eacde6",
+      "name": "Fetch Updated Complaint Row"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming items from previous node (Get Row)\nconst items = $input.all();\n\n// Map each row to match your dashboard columns (lowercase keys)\nconst output = items.map(item => ({\n  json: {\n    id: item.json[\"ID\"] || \"\",\n    name: item.json[\"Name\"] || \"\",\n    contact: item.json[\"Contact\"] || \"\",\n    type: item.json[\"Type\"] || \"\",\n    details: item.json[\"Details\"] || \"\",\n    priority: item.json[\"Priority\"] || \"\",\n    status: item.json[\"Status\"] ? item.json[\"Status\"].replace(/\"/g, \"\") : \"\",\n    assignee: item.json[\"Assignee\"] ? item.json[\"Assignee\"].replace(/\"/g, \"\") : \"\", // completely replaced\n    createdat: item.json[\"Created At\"] || \"\",\n    actions: \"\" // empty button column\n  }\n}));\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        96
+      ],
+      "id": "be66c573-13e2-4b48-81cb-d135862a1048",
+      "name": "Format Row for Dashboard"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1328,
+        96
+      ],
+      "id": "2dfd7a0c-cb90-4ba5-8b08-f91e7ad4454a",
+      "name": "Return Complaint Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE",
+          "mode": "list",
+          "cachedResultName": "complaint",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 277131321,
+          "mode": "list",
+          "cachedResultName": "Complaint ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-UoBK-r3vVH9OH683J0412PB_QfoWAHqsSriKq62WvE/edit#gid=277131321"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        272
+      ],
+      "id": "1ae231fb-5c7e-40aa-b981-d56c936135c2",
+      "name": "Fetch All Complaints"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst output = items.map(item => ({\n  json: {\n    ID: item.json['ID'] || '',\n    Name: item.json['Name'] || '',\n    Contact: item.json['Contact'] || '',\n    Type: item.json['Type'] || '',\n    Details: item.json['Details'] || '',\n    Priority: item.json['Priority'] || '',\n    Status: item.json['Status'] ? item.json['Status'].replace(/\"/g, '') : '',\n    Assignee: item.json['Assignee'] ? item.json['Assignee'].replace(/\"/g, '') : '', // replaced\n    'Created At': item.json['Created At'] || ''\n  }\n}));\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        272
+      ],
+      "id": "8d5be518-16c3-454c-a2db-8b52cb9afc1c",
+      "name": "Format All Complaints"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        944,
+        272
+      ],
+      "id": "a142b776-b65b-4665-af61-c7ee7c53b1bc",
+      "name": "Return All Complaints"
+    },
+    {
+      "parameters": {
+        "content": "Webhook & Mode Check\n\nPurpose: Receive incoming complaints and determine the action type.\n",
+        "height": 272,
+        "width": 368,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "879068ca-0c41-4bf1-9bc9-e5d1d319c484",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": " \n\n\n\n\n\n\n\n\n\n\n\n\nFetch Existing Complaints\n\nPurpose: Retrieve and format all complaints from Google Sheets for the dashboard.\n\n",
+        "height": 240,
+        "width": 656,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "8e330c0d-b5ff-4cb9-958f-f0c1422743fb",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Process New Complaint\n\nPurpose: Parse, append/update complaints in Google Sheets, and return the data to the dashboard.\n\n",
+        "height": 256,
+        "width": 1024,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "30e9e80c-237c-4e6a-99ca-af522eb51ba9",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check Action Type": {
+      "main": [
+        [
+          {
+            "node": "Prepare Assignee Update Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Status Update Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Assignee Update Data": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheet With Assignee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Google Sheet With Assignee": {
+      "main": [
+        [
+          {
+            "node": "Fetch Updated Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Updated Rows": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Status Update Data": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheet With Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Google Sheet With Status": {
+      "main": [
+        [
+          {
+            "node": "Fetch Updated Rows With Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Updated Rows With Status": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Complaint Management Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Action Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Complaint Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Mode Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Mode Type": {
+      "main": [
+        [
+          {
+            "node": "Parse Complaint JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch All Complaints",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Complaint JSON": {
+      "main": [
+        [
+          {
+            "node": "Append/Update Complaint Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append/Update Complaint Row": {
+      "main": [
+        [
+          {
+            "node": "Fetch Updated Complaint Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Updated Complaint Row": {
+      "main": [
+        [
+          {
+            "node": "Format Row for Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Row for Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Return Complaint Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Complaints": {
+      "main": [
+        [
+          {
+            "node": "Format All Complaints",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format All Complaints": {
+      "main": [
+        [
+          {
+            "node": "Return All Complaints",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "899816be-12b9-4ab0-a02b-cebacdfd8212",
+  "meta": {
+    "instanceId": "e9ab6c4dc4d73f1768552a87c17213967db1349235852a9e0d48cfd13ab760bd"
+  },
+  "id": "VYvTJZ3X6wIGCpK6",
+  "tags": []
+}
