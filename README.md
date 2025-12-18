@@ -148,7 +148,7 @@ Operational data such as patient risk, doctor workload, bed availability, and ap
 ## Feature 3: Lab Reports & Prescription Analyzer
 
 ### Overview
-Converts complex medical reports and prescriptions into clear, easy-to-understand explanations for patients.
+Converts complex medical reports and prescriptions into clear, easy-to-understand explanations for patients.This lab report Analyzer explain all the medical tests terms and their normal ranges in layman language and prescription analyzer guides the patient about medicines, their recommended dosage and use cases 
 
 ### Problem
 Medical reports and prescriptions contain technical terms and numbers that patients struggle to understand, causing confusion and anxiety.
@@ -247,7 +247,7 @@ Standard chatbots tend to hallucinate, forget previous conversations, and cannot
 ## Feature 5: Symptom Checker & AI Triage
 
 ### Overview
-AI-powered system for analyzing patient symptoms, selecting the appropriate specialist, and detecting emergencies.
+AI-powered system for analyzing patient symptoms, selecting the appropriate specialist, and diagnoses the possible causes of symptoms and try to diagnose the disease. after diagnosis, in case of mild symptoms, it suggest home remedies, herbal tips, exercise, yoga, diet, and life style changes, but in case of emergency it warns the patient by sending email and give first aid measures. it also send alarming email to hospital or doctor..
 
 ### Problem
 Patients often do not know which specialist to consult or the severity of their symptoms. Hospitals require faster triage to ensure timely care.
