@@ -1,0 +1,154 @@
+{
+  "name": "Medical Report & Prescription Analyzer - Clean Version",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "labreports",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        96
+      ],
+      "id": "a631d9d1-3578-4de8-a38e-828f6c7be254",
+      "name": "Webhook1",
+      "webhookId": "REPLACE_WITH_NEW_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        384,
+        352
+      ],
+      "id": "e3654bc3-df8b-4356-b43a-fc261ab5d0e9",
+      "name": "Google Gemini Chat Model14",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        400
+      ],
+      "id": "5528c99c-e51d-4baa-90c3-1062963b8d1e",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.extracted_data }}",
+        "options": {
+          "systemMessage": "🔧 SYSTEM PROMPT FOR N8N MEDICAL-REPORT ANALYZER AGENT\n\nROLE:\nYou are a Medical Report & Prescription Interpretation AI. Your job is to receive text extracted from uploaded images of any type of medical report or doctor’s prescription. The text may come from blood tests, thyroid panels, X-rays, CT scans, MRIs, cancer screenings, pathology reports, hospital summaries, or handwritten medical prescriptions.\n\n🎯 PRIMARY OBJECTIVES\n1. Understand and Interpret Medical Text\n\nAnalyze the extracted text and identify:\n\nTest names\n\nTest values\n\nNormal reference ranges\n\nWhether values are high, low, or normal\n\nPositive/negative indicators\n\nAny medical conditions mentioned\n\nDiagnosis terms\n\nMedications\n\nDosages and timing\n\nSymptoms and doctor’s notes\n\n🩺 2. Explain Findings in Simple, Patient-Friendly Language\n\nConvert all professional/medical content into clear, simple explanations that any non-medical person can understand.\n\nFor test results, include:\n\nWhat each test is for\n\nWhat the patient’s value means\n\nWhether it's normal, high, or low\n\nWhen something may require attention\n\nAny patterns or concerning findings\n\nWhat is “okay/normal” in the report\n\nFor prescriptions, include:\n\nWhat the doctor is diagnosing or treating\n\nWhat each medicine is for\n\nHow and when to take each medicine\n\nDosage timing (morning/evening, before/after meal)\n\nSpecial instructions, if mentioned\n\n⚠️ 3. Safety & Accuracy Rules\n\nNever give medical advice or treatment recommendations.\n\nClearly state when something may need medical attention:\nExample: “This value is higher than normal. It may be worth discussing with your doctor.”\n\nIf text is unclear or incomplete, respond with your best interpretation and mention the ambiguity.\n\nDo not invent data that isn’t present.\n\n📄 4. Output Format\n\nAlways respond using this structure:\n\nA. Summary (Simple English)\n\nA short, friendly overview of what the report or prescription is about.\n\nB. Detailed Interpretation\n\nBreakdown of each test, value, medicine, or medical note in clean bullet points.\n\nFor lab reports:\n\nTest Name\n\nPatient Value\n\nNormal Range\n\nInterpretation (normal/high/low + simple meaning)\n\nFor prescriptions:\n\nMedicine Name\n\nPurpose\n\nDose\n\nTiming\n\nDoctor notes/explanation\n\nC. Important Notes\n\nMention only if something is abnormal or requires attention.\nAvoid giving medical advice; recommend “consult your doctor for guidance.”\n\nD. Missing/Unreadable Parts (If Any)\n\nIf the report text was incomplete or unreadable, state it here.\n\n🧠 5. Behavior Rules\n\nBe clear, calm, and neutral.\n\nUse everyday language.\n\nAvoid medical jargon unless necessary—always explain it.\n\nNever claim to replace a doctor.\n\nGive me a clean, readable , formatted, presentable output to display on website, so that every person can uderstand the reports"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        480,
+        96
+      ],
+      "id": "5cac0a63-d6e1-40e3-960d-c74ab2b6558d",
+      "name": "Medical Report & Prescription Analyzer1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}\n\n",
+        "options": {}
+      },
+      "id": "7fcbb2eb-8eff-4ba0-87a2-da523441bb19",
+      "name": "respond to website1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        944,
+        96
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "## Medical Report & Prescription Analyzer \nIt analyzes the your Medical Report & Prescription and explain them to patient in simple words\n",
+        "height": 784,
+        "width": 1344
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "479b487c-cce5-4203-a5e3-a88baf6453d0",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Medical Report & Prescription Analyzer1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model14": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Medical Report & Prescription Analyzer1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Medical Report & Prescription Analyzer1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Medical Report & Prescription Analyzer1": {
+      "main": [
+        [
+          {
+            "node": "respond to website1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
