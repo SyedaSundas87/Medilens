@@ -1,0 +1,474 @@
+{
+  "name": "Medilens Webcalling - Clean Version",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        112,
+        272
+      ],
+      "id": "ea80e609-a3c0-42d0-a57d-c6f9c5fa2733",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Data Scraper').item.json.content.parts[0].text }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        304
+      ],
+      "id": "fb2d8afa-383d-48c7-8dea-e54b413fbf84",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Your appointment has been successfully booked.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        864,
+        64
+      ],
+      "id": "5f7cf367-eb88-4561-a2b7-fc9451f5cfda",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_EMAIL@gmail.com",
+          "mode": "list"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        336
+      ],
+      "id": "cbec6de1-7070-4f10-93ad-2acc921cedea",
+      "name": "Get Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": null,
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_EMAIL@gmail.com",
+          "mode": "list"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `create appointment , start date should be not before the current date and time`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `from start date to two weeks`, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        272
+      ],
+      "id": "999f338a-9a48-46dd-9676-b182ec490d13",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": null,
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_EMAIL@gmail.com",
+          "mode": "list"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        352
+      ],
+      "id": "89292bd5-b53f-4ba8-855b-20ee91378b16",
+      "name": "Delete an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": null,
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Voice Assitant\n** It check and book appointment and update google sheet** ",
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "e1fab7ec-cee2-4c88-af8f-8bb8b9d82b5c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "REPLACE_WITH_YOUR_WEBHOOK_PATH",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -416,
+        64
+      ],
+      "id": "29134397-5300-447f-8db7-cde5793fe1b2",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Intelligent Scheduling Engine for medilens Hospital.\nYour goal is to manage appointment bookings and cancellations using the provided tools.\nYou have access to patient data (Name, Date, Doctor,requsted time etc.) from the user input.\nThe current data/time is:  {{ $now }}\nCustomer requested time:\nspecialist: {{ $json.doctor_name }}\n\n### TOOLS AVAILABLE\n1. Google Calendar (Get/List Events, Create Event, Delete Event)\n2. Google Sheets (Append Row)\n\n### WORKFLOW LOGIC\n\n#### SCENARIO 1: BOOKING AN APPOINTMENT (Intent: Create)\n1. **CHECK AVAILABILITY:**\n   - First, call the \"Google Calendar\" tool to search for existing events on the requested **Date**.\n   - Do not process or alter the time; check the specific date/slot provided in the input.\n\n2. **DECISION MATRIX:**\n   - **IF the slot is FREE (No conflicting events found):**\n     - Step A: Call \"Google Calendar - Create Event\" with the patient's details.\n     - Step B: Call \"Google Sheets - Append\" to log the details (Patient Name, Doctor, Date, Phone, Email).\n     - Step C: Output the \"Success\" response below.\n\n   - **IF the slot is BUSY (Conflict found):**\n     -the call the tool.Create Event' and book for the next date.\n\n\n#### SCENARIO 2: CANCELLING AN APPOINTMENT (Intent: Delete)\n1. **EXECUTE DELETE:**\n   - Call \"Google Calendar - Delete Event\" matching the patient's name and date.\n2. **CONFIRM:**\n   - Output the \"Cancellation\" response below.\n\n### RESPONSE TEMPLATES\nYou must reply ONLY with one of the following formats based on the outcome:\n\n**Case: Success**\n\"The appointment with {{ $json.doctor_name }}\non {{ $json.appointment_date }}\nhas been successfully booked and logged.\"\n\n**Case: Conflict (Busy)**\n\"The requested slot is busy.so you date is\n\n**Case: Cancellation**\n\"The appointment for {{ $json.patient_name }}\nhas been successfully canceled.\"\n\ninput:\n{{ $('Data Scraper').item.json.content.parts[0].text }}\n\nNote: no need to process time just do date\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        368,
+        64
+      ],
+      "id": "125e65a0-8f02-4704-901f-03797f741031",
+      "name": "Voice Assitant"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=take the input and provide the output in below formate clean data to privide to AI Agent\n\nJSON Key\tDescription\tExtracted Example\noperation_type\tThe final intent: must be one of \"create\", \"delete\", or \"check_status\".\t\"create\"\npatient_name\tThe full patient name (must be extracted from the transcript).\t\"Bilal Khan\"\nphone_number\tThe patient's contact number.\t\"03001234567\"\nemail_address\tThe patient's email address.\t\"bilal@example.com\"\ndoctor_name\tThe name of the specialist or department requested.\t\"Dr. Affan\" or \"gastroentologist\" or \"dermatologist\"\nappointment_date\tThe confirmed date for the appointment. Convert to YYYY-MM-DD.\nappointment_time  The requested time for the appointment in Pakistan Standard Time (PKT) using the HH:MM AM/PM format (e.g., '02:30 PM').\n\nInput:\n {{ $json.body.call.transcript }}\n\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        64
+      ],
+      "id": "8b08e62c-3789-4e11-9c9b-b8ea1ff00173",
+      "name": "Data Scraper",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Date Scraper\n**Summarize the call data Data received in text is  large data it collect the required data only ** ",
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -192,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "276ce55b-afc6-45f9-8d7c-27b8e34eb094",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Function name the AI Agent is calling\nconst FUNCTION_NAME = 'book_appointment'; \n\nconst inputItem = $input.first().json.content;\nlet parsedData;\n\n// 1. Prioritize extracting from the function call arguments (most common clean structure)\nif (inputItem.functionCall && inputItem.functionCall.name === FUNCTION_NAME) {\n    parsedData = inputItem.functionCall.args;\n} else {\n    // 2. Fallback for raw JSON text (Your current clean input example)\n    try {\n        const rawText = inputItem.parts?.[0]?.text;\n        if (rawText) {\n            // Clean the text by removing the surrounding markdown/JSON wrappers\n            const jsonString = rawText.replace(/```json\\s*/, '').replace(/\\s*```/, '').trim();\n            parsedData = JSON.parse(jsonString);\n        }\n    } catch (e) {\n        console.error(\"JSON parsing failed, input may be incomplete or malformed:\", e);\n        return [];\n    }\n}\n\nif (!parsedData) {\n    console.warn(\"No valid data structure found from AI Agent.\");\n    return [];\n}\n\n// 3. --- Create the final clean output object ---\n// Note: We use the key 'appointment_date' as provided in your input.\n\nconst finalOutput = {\n    patient_name: parsedData.patient_name,\n    phone_number: parsedData.phone_number,\n    email_address: parsedData.email_address,\n    doctor_name: parsedData.doctor_name,\n    appointment_time: parsedData.appointment_time,\n    \n    // The simplified date field:\n    appointment_date: parsedData.appointment_date, \n    \n    operation_type: parsedData.operation_type || 'create'\n};\n\n// Final check for essential data before proceeding\nif (!finalOutput.patient_name || !finalOutput.appointment_date) {\n    console.warn(\"Required patient name or appointment date is missing. Stopping item.\");\n    return [];\n}\n\nreturn [{ json: finalOutput }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        64
+      ],
+      "id": "77b86d89-17a2-4c7c-a67d-ed37538b0875",
+      "name": "Reshape the data"
+    },
+    {
+      "parameters": {
+        "content": "## Reshape the data\n##It re-shape the data for Excell Sheet like\nName: Ahmad\nContct#: 0345---\n\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        96,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "1eef1601-af97-432b-9b0f-414144b76596",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Reshape the data').item.json.email_address }}",
+        "subject": "Appointment Confirmation",
+        "message": "=Dear {{ $('Reshape the data').item.json.patient_name }},\n\nYour appointment has been successfully confirmed at Medilens Hospital. \nAppointment Details: \n• Date: {{ $('Reshape the data').item.json.appointment_date }} \n• Time: {{ $('Reshape the data').item.json.appointment_time }}\n• Department / Doctor:{{ $('Reshape the data').item.json.doctor_name }} • \n\nWhat to Bring:\n• Your CNIC / ID card\n• Previous medical records (if any)\n• Current medications list (optional but helpful) \n Looking forward to taking care of you. Wishing you good health always. \n\nRegards, Medilens Hospital Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "31088259-cfbc-4280-9854-1a2777a7ad48",
+      "name": "Send a message",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": null,
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Reshape the data').item.json.patient_name }}",
+            "Email": "={{ $('Reshape the data').item.json.email_address }}",
+            "Appointment date": "={{ $('Reshape the data').item.json.appointment_date }}",
+            "Specialists/ Doctors": "={{ $('Reshape the data').item.json.doctor_name }}",
+            "contact no": "={{ $('Reshape the data').item.json.phone_number }}",
+            "Call timestamp": "={{ $now }}",
+            "booking time": "={{ $json.appointment_time }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "type": "string"
+            },
+            {
+              "id": "Call timestamp",
+              "displayName": "Call timestamp",
+              "type": "string"
+            },
+            {
+              "id": "Appointment date",
+              "displayName": "Appointment date",
+              "type": "string"
+            },
+            {
+              "id": "Specialists/ Doctors",
+              "displayName": "Specialists/ Doctors",
+              "type": "string"
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "type": "string"
+            },
+            {
+              "id": "contact no",
+              "displayName": "contact no",
+              "type": "string"
+            },
+            {
+              "id": "booking time",
+              "displayName": "booking time",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        656,
+        320
+      ],
+      "id": "5ae2d15d-13b7-471e-98b2-c4bf11c7747b",
+      "name": "Append row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Data Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Assitant": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Scraper": {
+      "main": [
+        [
+          {
+            "node": "Reshape the data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reshape the data": {
+      "main": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Voice Assitant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
