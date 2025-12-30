@@ -1,6 +1,6 @@
 Demo video link of MEDILENS:
+https://drive.google.com/file/d/1U4NqI0ADFQhORb3wUoNcgTrMDnLnQH4V/view?usp=sharing
 
-https://drive.google.com/file/d/1G3Ji399MjPlVtzWN1jIX_anN-8Idl30a/view?usp=sharing
 
 # 🏥 Medilens – AI-Powered Hospital Automation Platform
 
@@ -364,7 +364,7 @@ Together, Medilens reduces manual work, improves response times, enhances patien
 
 Demo video link of MEDILENS:
 
-https://drive.google.com/file/d/1G3Ji399MjPlVtzWN1jIX_anN-8Idl30a/view?usp=sharing
+https://drive.google.com/file/d/1U4NqI0ADFQhORb3wUoNcgTrMDnLnQH4V/view?usp=sharing
 
 ## 📄 License
 This project is licensed under the MIT License.  
