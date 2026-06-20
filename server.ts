@@ -19,7 +19,7 @@ async function startServer() {
       }
 
       const client = new Retell({
-        apiKey: process.env.RETELL_API_KEY || '',
+        apiKey: process.env.RETELL_API_KEY as string,
       });
 
       const webCallResponse = await client.call.createWebCall({
@@ -41,7 +41,7 @@ async function startServer() {
     try {
       const query = new URLSearchParams(req.query as any).toString();
       const TARGET_URL = `https://n8nsundas.duckdns.org/webhook/RAG${query ? '?' + query : ''}`;
-      const API_KEY = process.env.RAG_API_KEY || '';
+      const API_KEY = process.env.RAG_API_KEY as string;
       
       console.log(`[RAG Webhook] Hitting URL: ${TARGET_URL}`);
       console.log(`[RAG Webhook] Using API Key: ${API_KEY.substring(0, 5)}...`);
@@ -70,7 +70,7 @@ async function startServer() {
     try {
       const query = new URLSearchParams(req.query as any).toString();
       const TARGET_URL = `https://n8nsundas.duckdns.org/webhook/hospital${query ? '?' + query : ''}`;
-      const API_KEY = process.env.HOSPITAL_API_KEY || '';
+      const API_KEY = process.env.HOSPITAL_API_KEY as string;
       
       console.log(`[Hospital Webhook] Hitting URL: ${TARGET_URL}`);
       console.log(`[Hospital Webhook] Using API Key: ${API_KEY.substring(0, 5)}...`);
@@ -99,7 +99,7 @@ async function startServer() {
       const query = new URLSearchParams(req.query as any).toString();
       // PRODUCTION WEBHOOK URL
       const TARGET_URL = `https://n8nsundas.duckdns.org/webhook/labreports${query ? '?' + query : ''}`;
-      const API_KEY = process.env.REPORTS_API_KEY || '';
+      const API_KEY = process.env.REPORTS_API_KEY as string;
       
       console.log(`Proxying Lab Report to: ${TARGET_URL}`);
       console.log(`[Lab Reports Webhook] Using API Key: ${API_KEY.substring(0, 5)}...`);
@@ -156,7 +156,7 @@ async function startServer() {
       console.log(`Proxying request to: ${TARGET_URL} with method POST`);
       console.log("Request body:", JSON.stringify(req.body));
 
-      const API_KEY = process.env.COMPLAINTS_API_KEY || "";
+      const API_KEY = process.env.COMPLAINTS_API_KEY as string;
 
       const response = await fetch(TARGET_URL, {
         method: 'POST',
@@ -185,7 +185,7 @@ async function startServer() {
       const query = new URLSearchParams(req.query as any).toString();
       const TARGET_URL = `https://n8ndigitalstudio.duckdns.org/webhook/complaints${query ? '?' + query : ''}`;
       
-      const API_KEY = process.env.COMPLAINTS_API_KEY || "";
+      const API_KEY = process.env.COMPLAINTS_API_KEY as string;
       
       const response = await fetch(TARGET_URL, {
         method: 'POST',
@@ -225,7 +225,7 @@ async function startServer() {
     try {
       const TARGET_URL = "https://n8ndigitalstudio.duckdns.org/webhook/v1/complaints";
       // API Key should ideally be in process.env, fallback provided for preview context
-      const API_KEY = process.env.COMPLAINTS_API_KEY || "";
+      const API_KEY = process.env.COMPLAINTS_API_KEY as string;
       
       const response = await fetch(TARGET_URL, {
         method: 'POST',
@@ -250,7 +250,7 @@ async function startServer() {
       const TARGET_URL = "https://n8ndigitalstudio.duckdns.org/webhook/v1/admin/ai/suggestion";
       console.log(`Proxying request to: ${TARGET_URL} with method POST`);
       
-      const API_KEY = process.env.COMPLAINTS_API_KEY || "";
+      const API_KEY = process.env.COMPLAINTS_API_KEY as string;
       
       const response = await fetch(TARGET_URL, {
         method: 'POST',
@@ -278,7 +278,7 @@ async function startServer() {
       console.log(`Proxying request to: ${TARGET_URL} with method POST`);
       
       // API Key for secure access
-      const API_KEY = process.env.COMPLAINTS_API_KEY || "";
+      const API_KEY = process.env.COMPLAINTS_API_KEY as string;
 
       const response = await fetch(TARGET_URL, {
         method: 'POST',
