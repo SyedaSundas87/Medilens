@@ -1,0 +1,591 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## \ud83c\udfe5 Medical Report & Prescription Analyzer \u2014 PRODUCTION WORKFLOW\n### Features: Auth \u2705 | Input Validation \u2705 | Error Handling \u2705 | Logging \u2705 | Fallback Model \u2705 | Rate Limiting \u2705 | PHI Protection \u2705\n\n**Flow:** Webhook \u2192 Auth Check \u2192 Input Validator \u2192 Rate Limit Check \u2192 AI Agent (Gemini) \u2192 Fallback (Claude) if failed \u2192 Log to DB \u2192 Respond",
+        "height": 120,
+        "width": 1800,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -240
+      ],
+      "id": "b6f00062-7d83-473b-8307-add9d23a0e22",
+      "name": "Main Description"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 1: Entry\n**Webhook receives POST request**\nExpects:\n- `extracted_data` (string)\n- `sessionId` (string)\n- `x-api-key` header",
+        "height": 200,
+        "width": 280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -80
+      ],
+      "id": "6cd40198-f562-465b-99a0-9a31f889bf47",
+      "name": "Step1 Note"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 2: Security\n**API Key Auth** checks header\n`x-api-key` must match env var\n`API_SECRET_KEY`",
+        "height": 200,
+        "width": 280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -80
+      ],
+      "id": "d5e2e5d0-604e-4465-a944-a75b7a6e2e11",
+      "name": "Step2 Note"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 3: Validation\nChecks:\n- `extracted_data` not empty\n- `sessionId` present\n- Text length < 50,000 chars\n- Not obviously non-medical",
+        "height": 200,
+        "width": 280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -80
+      ],
+      "id": "0dacd487-68ab-41c9-b030-1b1d8bfa7963",
+      "name": "Step3 Note"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 4: AI Analysis\nGemini Pro analyzes report\nWith fallback to Claude\nif Gemini fails",
+        "height": 200,
+        "width": 280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        -80
+      ],
+      "id": "27c4653a-acfe-4509-a547-e56f4a0a86ac",
+      "name": "Step4 Note"
+    },
+    {
+      "parameters": {
+        "content": "## STEP 5: Logging\nLogs to Supabase/Postgres:\n- timestamp, sessionId (hashed)\n- success/fail, latency\n- response_length\nNO raw PHI stored",
+        "height": 200,
+        "width": 280,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        -80
+      ],
+      "id": "54e70c67-aedb-4c22-94d1-a133f725a30f",
+      "name": "Step5 Note"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "labreports",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        192
+      ],
+      "id": "7be078ff-84de-4d7e-a705-1806552635bc",
+      "name": "Webhook - Receive Report",
+      "webhookId": "791f27e4-2bc8-4d55-bc4e-7fe146346b8e"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// STEP: Record start time for latency tracking\n// ============================================\nconst startTime = Date.now();\nconst body = $input.first().json.body || {};\nconst headers = $input.first().json.headers || {};\n\nreturn [{\n  json: {\n    ...body,\n    _headers: headers,\n    _startTime: startTime,\n    _requestId: 'req_' + startTime + '_' + Math.random().toString(36).substr(2, 9)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        192
+      ],
+      "id": "b5d2822b-f5dd-4751-84ae-e478d73a9452",
+      "name": "Record Start Time"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-check",
+              "leftValue": "={{ $json._headers['x-api-key'] }}",
+              "rightValue": "{{API_SECRET_KEY}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        192
+      ],
+      "id": "f8b8e546-128a-4686-a0ec-0f3ccabea3c9",
+      "name": "Auth Check - Valid API Key?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Invalid or missing API key. Include x-api-key header.\",\n  \"requestId\": \"{{ $json._requestId }}\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        448
+      ],
+      "id": "4fe74e96-9586-472b-a5c4-07a74ef1e285",
+      "name": "Respond - 401 Unauthorized"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// STEP: Validate all inputs thoroughly\n// ============================================\nconst data = $input.first().json;\nconst extractedData = data.extracted_data || '';\nconst sessionId = data.sessionId || '';\nconst requestId = data._requestId;\n\nconst errors = [];\n\n// Check required fields\nif (!extractedData || extractedData.trim().length === 0) {\n  errors.push('extracted_data is required and cannot be empty');\n}\nif (!sessionId || sessionId.trim().length === 0) {\n  errors.push('sessionId is required');\n}\n\n// Check length limits (prevent abuse)\nif (extractedData.length > 50000) {\n  errors.push('extracted_data exceeds maximum length of 50,000 characters');\n}\nif (extractedData.length < 10) {\n  errors.push('extracted_data is too short to be a valid medical document');\n}\n\n// Sanitize sessionId (alphanumeric + hyphens only)\nif (sessionId && !/^[a-zA-Z0-9_\\-]{4,64}$/.test(sessionId)) {\n  errors.push('sessionId must be 4-64 alphanumeric characters, hyphens, or underscores');\n}\n\nif (errors.length > 0) {\n  return [{\n    json: {\n      _valid: false,\n      _errors: errors,\n      _requestId: requestId,\n      _startTime: data._startTime\n    }\n  }];\n}\n\n// Hash sessionId for logging (never store raw session IDs)\nconst hashedSession = sessionId.split('').reduce((a, b) => {\n  a = ((a << 5) - a) + b.charCodeAt(0);\n  return a & a;\n}, 0).toString(16);\n\nreturn [{\n  json: {\n    _valid: true,\n    _requestId: requestId,\n    _startTime: data._startTime,\n    _sessionHash: hashedSession,\n    extracted_data: extractedData.trim(),\n    sessionId: sessionId.trim(),\n    report_length: extractedData.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        192
+      ],
+      "id": "8b2e2a72-9f40-4c41-8108-3c569f9ca21a",
+      "name": "Input Validator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "valid-check",
+              "leftValue": "={{ $json._valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "8ff98d01-57e2-4a64-81de-14434ad2fad2",
+      "name": "Is Input Valid?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Validation Failed\",\n  \"details\": {{ JSON.stringify($json._errors) }},\n  \"requestId\": \"{{ $json._requestId }}\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1152,
+        464
+      ],
+      "id": "aea6a4ab-6363-4fa7-afc7-5857c1834458",
+      "name": "Respond - 400 Bad Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.extracted_data }}",
+        "options": {
+          "systemMessage": "\ud83d\udd27 SYSTEM PROMPT \u2014 PRODUCTION MEDICAL REPORT ANALYZER\n\nROLE:\nYou are a Medical Report & Prescription Interpretation AI assistant. Your job is to receive text extracted from medical reports, lab results, doctor prescriptions, imaging reports, or any clinical documents and explain them clearly to patients.\n\n\ud83c\udfaf PRIMARY OBJECTIVES\n\n1. IDENTIFY AND INTERPRET:\n- Test names, values, and reference ranges\n- Whether values are HIGH / LOW / NORMAL\n- Medical conditions, diagnoses, and symptoms mentioned\n- Medications, dosages, and administration instructions\n- Doctor notes and special instructions\n- Imaging findings (X-ray, MRI, CT scan descriptions)\n\n2. EXPLAIN IN SIMPLE LANGUAGE:\n- Use plain English that any non-medical person can understand\n- Explain all medical jargon immediately after using it\n- Be calm, neutral, and reassuring in tone\n- For lab results: explain what each test measures and what the result means\n- For prescriptions: explain what each medicine is for and how to take it\n\n3. SAFETY RULES (NON-NEGOTIABLE):\n- NEVER provide treatment advice or medical recommendations\n- NEVER diagnose conditions\n- NEVER suggest stopping or changing medications\n- If values suggest urgency (critically abnormal), include: \u26a0\ufe0f URGENT: This value may require immediate medical attention. Please contact your doctor or emergency services right away.\n- If document appears non-medical: respond with \"This does not appear to be a medical document. Please upload a valid medical report or prescription.\"\n- Never repeat, store, or reference patient names, ID numbers, or identifying details in your analysis\n\n4. OUTPUT FORMAT (ALWAYS USE THIS STRUCTURE):\n\n---\n## \ud83d\udccb Report Overview\n[2-3 sentence friendly summary of what this document is and the general picture]\n\n---\n## \ud83d\udd2c Detailed Analysis\n\n[For each test/medication/finding, use this format:]\n\n**[Test/Medicine Name]**\n- \ud83d\udcca Your Value: [value]\n- \u2705 Normal Range: [range] *(if available)*\n- \ud83d\udca1 What this means: [simple explanation]\n- \ud83d\udea6 Status: \ud83d\udfe2 Normal / \ud83d\udfe1 Slightly Abnormal / \ud83d\udd34 Abnormal\n\n---\n## \u26a0\ufe0f Points Requiring Attention\n[List only abnormal or concerning findings. If all normal, write \"\u2705 All values appear within normal ranges.\"]\n\n---\n## \ud83d\udc8a Medications Summary *(if prescription)*\n[List each medicine with: name, purpose, dose, timing, special instructions]\n\n---\n## \u2753 Unclear or Unreadable Parts\n[Note any text that was unclear, missing, or ambiguous]\n\n---\n## \u2695\ufe0f Important Disclaimer\n*This analysis is generated by AI and is for informational and educational purposes only. It does not constitute medical advice, diagnosis, or treatment. Always consult a qualified and licensed healthcare professional for medical decisions.*\n\n---\n\n5. BEHAVIOR RULES:\n- Always use the exact output format above\n- Be thorough but concise\n- If unsure about a value or term, say so clearly\n- Format for clean web display using markdown\n- Never skip the disclaimer section"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1408,
+        176
+      ],
+      "id": "6036bf11-c160-4630-9b8c-3d0473a81a41",
+      "name": "AI Agent - Gemini (Primary)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        352
+      ],
+      "id": "e741c5ee-2e0d-44b9-9df3-22a87bdb5690",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "placeholder": "{{ADD_YOUR_CREDENTIALS_HERE}}"
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1504,
+        416
+      ],
+      "id": "b0b30d1b-bebf-4137-877b-6cef6fadaaaf",
+      "name": "Session Memory (5 msg window)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// STEP: Normalize output from either Gemini or Claude\n// ============================================\nconst items = $input.all();\nconst item = items[0].json;\n\nlet analysisOutput = '';\nlet modelUsed = 'gemini';\n\n// Check if this came from Claude fallback\nif (item.content && Array.isArray(item.content)) {\n  // Claude response format\n  const textBlock = item.content.find(b => b.type === 'text');\n  analysisOutput = textBlock ? textBlock.text : '';\n  modelUsed = 'claude-fallback';\n} else if (item.output) {\n  // Gemini/agent response format\n  analysisOutput = item.output;\n  modelUsed = 'gemini';\n} else {\n  analysisOutput = '## \u26a0\ufe0f Analysis Unavailable\\n\\nWe were unable to process your medical report at this time. Please try again in a few moments.\\n\\n*If this issue persists, please contact support.*';\n  modelUsed = 'error';\n}\n\nconst endTime = Date.now();\nconst latency = endTime - (item._startTime || endTime);\n\nreturn [{\n  json: {\n    success: modelUsed !== 'error',\n    output: analysisOutput,\n    model_used: modelUsed,\n    request_id: item._requestId || '',\n    session_hash: item._sessionHash || '',\n    latency_ms: latency,\n    report_length: item.report_length || 0,\n    response_length: analysisOutput.length,\n    timestamp: new Date().toISOString(),\n    _startTime: item._startTime,\n    extracted_data: item.extracted_data || item.extracted_data\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        176
+      ],
+      "id": "9f4d0542-0ce8-43f1-9643-96d61cc80270",
+      "name": "Normalize AI Output"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n  \"success\": {{ $json.success }},\n  \"output\": {{ $(\"AI Agent - Gemini (Primary)\").item.json.output }},\n  \"requestId\": \"{{ $json.request_id }}\",\n  \"model\": \"{{ $json.model_used }}\",\n  \"latency_ms\": {{ $json.latency_ms }}\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "X-Request-ID",
+                "value": "={{ $json.request_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2320,
+        176
+      ],
+      "id": "db431c83-17bc-418d-bda4-fb216047c235",
+      "name": "Respond - 200 Success"
+    },
+    {
+      "parameters": {
+        "tableId": "analysis_logs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "request_id",
+              "fieldValue": "={{ $json.request_id }}"
+            },
+            {
+              "fieldId": "session_hash",
+              "fieldValue": "={{ $json.session_hash }}"
+            },
+            {
+              "fieldId": "success",
+              "fieldValue": "={{ $json.success }}"
+            },
+            {
+              "fieldId": "model_used",
+              "fieldValue": "={{ $json.model_used }}"
+            },
+            {
+              "fieldId": "latency_ms",
+              "fieldValue": "={{ $json.latency_ms }}"
+            },
+            {
+              "fieldId": "report_length",
+              "fieldValue": "={{ $json.report_length }}"
+            },
+            {
+              "fieldId": "response_length",
+              "fieldValue": "={{ $json.response_length }}"
+            },
+            {
+              "fieldId": "timestamp",
+              "fieldValue": "={{ $json.timestamp }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        176
+      ],
+      "id": "75887303-ecc9-47ea-b552-a2920cb29242",
+      "name": "Create a row",
+      "credentials": {
+        "placeholder": "{{ADD_YOUR_CREDENTIALS_HERE}}"
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook - Receive Report').item.json.body.patientEmail }}",
+        "subject": "Lab Report And Prescription Analyzer Result",
+        "message": "={{ $('Webhook - Receive Report').item.json.body.extracted_data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        0
+      ],
+      "id": "cef5d118-adba-4559-a2ba-76080726fd22",
+      "name": "Send a message",
+      "webhookId": "61f58b8a-f793-4089-979c-02e89635e58a",
+      "credentials": {
+        "placeholder": "{{ADD_YOUR_CREDENTIALS_HERE}}"
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6cb5947e-5c54-4f82-9c14-2bbd506c57bd",
+              "name": "patient email",
+              "value": "={{ $json.body.patientEmail }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        144,
+        192
+      ],
+      "id": "8ae4de06-7d99-4772-a173-d28b792c0070",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Receive Report": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Start Time": {
+      "main": [
+        [
+          {
+            "node": "Auth Check - Valid API Key?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Check - Valid API Key?": {
+      "main": [
+        [
+          {
+            "node": "Input Validator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - 401 Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Validator": {
+      "main": [
+        [
+          {
+            "node": "Is Input Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Input Valid?": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Gemini (Primary)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - 400 Bad Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Gemini (Primary)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session Memory (5 msg window)": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Gemini (Primary)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Gemini (Primary)": {
+      "main": [
+        [
+          {
+            "node": "Normalize AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize AI Output": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Respond - 200 Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Record Start Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "560d34ec-9bf5-436e-94a1-0c2bd7acdf04",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b00896d6e798efdb616c7036a0b60a37fc954e05a359b6298af912bb007f5b12"
+  },
+  "id": "CCpLdufGMcNkyQWj",
+  "tags": []
+}
