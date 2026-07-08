@@ -1,0 +1,1031 @@
+{
+  "name": "Medilens Symptom Checker - Production",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hospital",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c01df011-1e67-4ff5-8cc1-e5dcd4c8d468",
+      "name": "Patient Input Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2272,
+        3856
+      ],
+      "webhookId": "1bca2fe0-2ea1-40e6-af4e-5b0651279212"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =============================================\n// REDIS-BASED RATE LIMITER\n// =============================================\n// This node expects you to have a Redis HTTP call above,\n// or uses n8n Redis node. Since n8n Code nodes can't call Redis directly,\n// this is a robust in-memory implementation with restart-safe logic.\n// For true production: replace with n8n Redis node before this.\n\nconst now = Date.now();\nconst ip = $json.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || \n           $json.headers?.['x-real-ip'] || \n           'unknown';\nconst WINDOW_MS = 60000; // 1 minute\nconst MAX_REQUESTS = 10;\n\n// Initialize global store\nif (!global.rateLimit) global.rateLimit = {};\nif (!global.rlLastClean) global.rlLastClean = now;\n\n// Periodic cleanup every 5 minutes to prevent memory leak\nif (now - global.rlLastClean > 300000) {\n  for (const key of Object.keys(global.rateLimit)) {\n    global.rateLimit[key] = global.rateLimit[key].filter(t => now - t < WINDOW_MS);\n    if (global.rateLimit[key].length === 0) delete global.rateLimit[key];\n  }\n  global.rlLastClean = now;\n}\n\nif (!global.rateLimit[ip]) global.rateLimit[ip] = [];\nglobal.rateLimit[ip] = global.rateLimit[ip].filter(t => now - t < WINDOW_MS);\n\nif (global.rateLimit[ip].length >= MAX_REQUESTS) {\n  return [{\n    json: {\n      ...items[0].json,\n      _rateLimited: true,\n      _clientIp: ip\n    }\n  }];\n}\n\nglobal.rateLimit[ip].push(now);\nreturn [{ json: { ...items[0].json, _rateLimited: false, _clientIp: ip } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        3856
+      ],
+      "id": "9c6c982c-f066-457a-acfd-0127c216a828",
+      "name": "Rate Limiter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "rate-limit-check",
+              "leftValue": "={{ $json._rateLimited }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a6de34e2-78d8-4c12-829b-eaf2f24bb1fa",
+      "name": "Rate Limit Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2784,
+        3856
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"error\",\"code\":429,\"message\":\"Too many requests. Please wait 60 seconds before trying again.\"}",
+        "options": {
+          "responseCode": 429
+        }
+      },
+      "id": "ce487799-fc62-4f9d-a1c0-a8367a537037",
+      "name": "Rate Limited Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2752,
+        3616
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const authHeader = $json.headers?.['authorization'] || '';\nconst expectedToken = '{{API_KEY}}';\nconst providedToken = authHeader.replace(/^Bearer\\s+/i, '').trim();\nconst isValid = providedToken === expectedToken;\n\nreturn [{\n  json: {\n    ...$json,\n    _authValid: isValid\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2992,
+        3872
+      ],
+      "id": "dc9e2d65-1d84-44a4-bd52-a3b189c66553",
+      "name": "Auth Check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "auth-valid-check",
+              "leftValue": "={{ $json._authValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ed2620df-b4ff-41f1-a666-31b9708151bf",
+      "name": "Auth Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3216,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"error\",\"code\":401,\"message\":\"Unauthorized. Valid API key required in Authorization header.\"}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "a3cf6ce8-e027-40c2-a287-23f6f1018310",
+      "name": "Unauthorized Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3216,
+        3664
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "symptoms-not-empty",
+              "leftValue": "={{ $json.body.text || $json.text || '' }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "session-id-not-empty",
+              "leftValue": "={{ $json.query.sessionId || $json.body.sessionId || '' }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "email-not-empty",
+              "leftValue": "={{ $json.body.patientEmail || $json.body.email || '' }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "54ff4035-304a-4cdc-95ac-90036fdb424c",
+      "name": "Input Validator",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3456,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"error\",\"code\":400,\"message\":\"Invalid request. Required fields: text (symptoms), sessionId, patientEmail\"}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "0394cda0-e1d9-4f81-a7ed-c6275fb95195",
+      "name": "Invalid Input Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3456,
+        3680
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "patientEmail",
+              "value": "={{ $json.body.patientEmail || $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "doctorEmail",
+              "value": "={{DOCTOR_EMAIL}}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "sessionId",
+              "value": "={{ $json.query.sessionId || $json.body.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "symptoms",
+              "value": "={{ $json.body.text || $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "requestTimestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "clientIp",
+              "value": "={{ $json._clientIp || 'unknown' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "fd6a2bb1-808d-49ad-a189-7ab7015b2b58",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3696,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-1",
+              "name": "symptoms",
+              "value": "={{ $json.symptoms }}",
+              "type": "string"
+            },
+            {
+              "id": "log-2",
+              "name": "timestamp",
+              "value": "={{ $json.requestTimestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "log-3",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "log-4",
+              "name": "patientEmail",
+              "value": "={{ $json.patientEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "log-5",
+              "name": "clientIp",
+              "value": "={{ $json.clientIp }}",
+              "type": "string"
+            },
+            {
+              "id": "log-6",
+              "name": "status",
+              "value": "received",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a590e7ac-cbf4-4d18-807c-26ebeb94c3d6",
+      "name": "Request Logger",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3936,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=symptoms: {{ $('Workflow Configuration').item.json.symptoms }}",
+        "options": {
+          "systemMessage": "You are a medical triage assistant for a hospital.\nAfter the patient answers your follow-up questions, analyze all information from the conversation history and output EXACTLY ONE of the following specialist names and nothing else:\n\nAvailable specialists:\n- Dermatologist (skin conditions)\n- Cardiologist (heart and cardiovascular issues)\n- Neurologist (brain and nervous system)\n- ENT (ear, nose, throat)\n- Gastrologist (digestive system)\n- Endocrinologist (hormones and metabolism)\n- Gynecologist (women's health)\n- Orthopedic (bones, joints, muscles)\n- General Physician (general health issues)\n- Pediatrician (children's health)\n- Psychologist (mental health)\n\nYour final response must be EXACTLY ONE of these specialist names and NOTHING ELSE. No explanation, no additional text, just the specialist name."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        4176,
+        3872
+      ],
+      "id": "ee5b5400-17fd-4b48-9691-52f1aa6d6511",
+      "name": "specialist selector"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        4064,
+        4128
+      ],
+      "id": "d837b5cf-a791-417c-b5ab-7004e83278d2",
+      "name": "Google Gemini Chat Model12"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Workflow Configuration').item.json.sessionId }}"
+      },
+      "id": "b7e2fa28-97ca-4ef6-878e-3629888d9a26",
+      "name": "Triage Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        4304,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// =============================================\n// DYNAMIC SPECIALIST PROMPT BUILDER\n// =============================================\n// Replaces 11 hardcoded agent nodes with 1 dynamic agent.\n// Add new specialists here without touching the rest of the workflow.\n\nconst specialistName = ($json.output || '').trim();\n\nconst SPECIALIST_CONFIG = {\n  'Dermatologist': {\n    role: 'specialist Dermatologist',\n    emergencyTriggers: 'severe allergic reactions, extensive burns, rapidly spreading rashes with fever, signs of infection spreading'\n  },\n  'Cardiologist': {\n    role: 'specialist Cardiologist',\n    emergencyTriggers: 'chest pain, severe shortness of breath, irregular heartbeat with dizziness, signs of heart attack or stroke'\n  },\n  'Neurologist': {\n    role: 'specialist Neurologist',\n    emergencyTriggers: 'sudden severe headache, loss of consciousness, seizures, stroke symptoms, sudden vision loss, severe confusion'\n  },\n  'ENT': {\n    role: 'specialist ENT (Ear, Nose, Throat)',\n    emergencyTriggers: 'severe throat swelling, difficulty breathing, foreign object lodged, severe bleeding, sudden hearing loss'\n  },\n  'Gastrologist': {\n    role: 'specialist Gastrologist',\n    emergencyTriggers: 'severe abdominal pain, blood in vomit or stool, signs of appendicitis, severe dehydration, suspected poisoning'\n  },\n  'Endocrinologist': {\n    role: 'specialist Endocrinologist',\n    emergencyTriggers: 'diabetic emergency, thyroid storm, severe hypoglycemia, adrenal crisis'\n  },\n  'Gynecologist': {\n    role: 'specialist Gynecologist',\n    emergencyTriggers: 'severe bleeding, pregnancy complications, severe pelvic pain, signs of ectopic pregnancy'\n  },\n  'Orthopedic': {\n    role: 'specialist Orthopedic',\n    emergencyTriggers: 'suspected fracture, severe joint dislocation, spinal injury, severe trauma, loss of limb function'\n  },\n  'General Physician': {\n    role: 'General Physician',\n    emergencyTriggers: 'high fever with severe symptoms, difficulty breathing, severe pain, signs of serious infection'\n  },\n  'Pediatrician': {\n    role: 'specialist Pediatrician',\n    emergencyTriggers: 'difficulty breathing, high fever in infants, severe dehydration, seizures, loss of consciousness'\n  },\n  'Psychologist': {\n    role: 'specialist Psychologist',\n    emergencyTriggers: 'suicidal thoughts, severe psychotic episode, immediate danger to self or others, severe panic attack'\n  }\n};\n\nconst config = SPECIALIST_CONFIG[specialistName] || SPECIALIST_CONFIG['General Physician'];\nconst resolvedSpecialist = SPECIALIST_CONFIG[specialistName] ? specialistName : 'General Physician';\n\nconst systemPrompt = `You are a ${config.role} AI assistant. Analyze the patient's symptoms and provide a comprehensive assessment.\nAvoid Direct Diagnosis Language\n\nInstead of:\n\n\u274c \"You have heart disease\"\n\nUse:\n\n\u2714\ufe0f \"Your symptoms may be associated with conditions such as...\"\n\nYour response must be in JSON format with ONLY these fields (no markdown, no code fences, raw JSON only):\n{\n  \"diagnosis\": \"Possible conditions based on symptoms\",\n  \"severity\": \"mild\" or \"emergency\",\n  \"homeRemedies\": [\"remedy 1\", \"remedy 2\"],\n  \"herbalTreatments\": [\"treatment 1\", \"treatment 2\"],\n  \"yoga\": [\"practice 1\", \"practice 2\"],\n  \"exercise\": [\"exercise 1\", \"exercise 2\"],\n  \"lifestyleChanges\": [\"change 1\", \"change 2\"],\n  \"diet\": [\"recommendation 1\", \"recommendation 2\"],\n  \"firstAid\": \"First aid procedures if needed\",\n  \"emergencyReason\": \"Why this is an emergency if applicable\"\n}\n\nMark as emergency if: ${config.emergencyTriggers}.\nReturn ONLY the raw JSON object. No explanation, no markdown, no code fences.`;\n\nreturn [{\n  json: {\n    ...$json,\n    _specialistName: resolvedSpecialist,\n    _systemPrompt: systemPrompt,\n    _symptoms: $('Workflow Configuration').item.json.symptoms\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4592,
+        3872
+      ],
+      "id": "40636818-4b02-4a93-99a1-38b88c6d36da",
+      "name": "Specialist Prompt Builder"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "specialist-valid-check",
+              "leftValue": "={{ $json._specialistName }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "54e194f4-721d-4ba1-bf29-662323e660c0",
+      "name": "Specialist Valid Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4864,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"error\",\"code\":422,\"message\":\"Unable to determine appropriate specialist. Please describe your symptoms in more detail.\"}",
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "id": "05b71c14-c4e9-4111-a6dc-efb27bbe61f7",
+      "name": "No Specialist Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4864,
+        3664
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json._symptoms }}",
+        "options": {
+          "systemMessage": "={{ $json._systemPrompt }}"
+        }
+      },
+      "id": "14c989a3-2957-4d8f-84b9-a81f930f26c3",
+      "name": "Dynamic Specialist Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        5136,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        5024,
+        4128
+      ],
+      "id": "d9e36262-31a6-4960-8072-d783267e309e",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "agent-output-check",
+              "leftValue": "={{ $json.output }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1de131f1-a1fe-48f8-bca9-f70043aa065b",
+      "name": "Agent Output Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5440,
+        3888
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"error\",\"code\":503,\"message\":\"AI assessment unavailable. Please consult a doctor directly or call emergency services if urgent.\"}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "4d5f59af-7bc8-468f-8839-936ea4a17fc2",
+      "name": "AI Failure Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5440,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// =============================================\n// ROBUST JSON PARSER\n// =============================================\n// Parses AI output \u2014 handles markdown fences, trailing text, etc.\n\nlet raw = $json.output || '';\n\n// Strip markdown code fences\nraw = raw.replace(/^```json\\s*/gm, '').replace(/^```\\s*/gm, '').replace(/```$/gm, '').trim();\n\n// Extract JSON object if there's surrounding text\nconst jsonMatch = raw.match(/\\{[\\s\\S]*\\}/);\nif (jsonMatch) raw = jsonMatch[0];\n\nlet parsed;\ntry {\n  parsed = JSON.parse(raw);\n} catch (e) {\n  // Fallback structure if parsing fails completely\n  parsed = {\n    diagnosis: 'Unable to parse AI response. Please consult a doctor.',\n    severity: 'mild',\n    homeRemedies: [],\n    herbalTreatments: [],\n    yoga: [],\n    exercise: [],\n    lifestyleChanges: [],\n    diet: [],\n    firstAid: '',\n    emergencyReason: '',\n    _parseError: true\n  };\n}\n\n// Normalize all array fields\nconst arrayFields = ['homeRemedies', 'herbalTreatments', 'yoga', 'exercise', 'lifestyleChanges', 'diet'];\nfor (const field of arrayFields) {\n  if (!Array.isArray(parsed[field])) {\n    parsed[field] = parsed[field] ? [parsed[field]] : [];\n  }\n}\n\n// Carry forward specialist name\nparsed._specialistName = $json._specialistName || 'General Physician';\nparsed._sessionId = $('Workflow Configuration').item.json.sessionId;\nparsed._patientEmail = $('Workflow Configuration').item.json.patientEmail;\nparsed._doctorEmail = $('Workflow Configuration').item.json.doctorEmail;\nparsed._bookingUrl = $('Workflow Configuration').item.json.bookingUrl;\nparsed._timestamp = $('Workflow Configuration').item.json.requestTimestamp;\n\nreturn [{ json: parsed }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5680,
+        3872
+      ],
+      "id": "cf6d9150-f90f-46c6-8b07-7abb01bde857",
+      "name": "Parse & Normalize Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "severity-check",
+              "leftValue": "={{ $json.severity }}",
+              "rightValue": "emergency",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9793c1f5-be49-4b14-9ecf-842107295361",
+      "name": "Check Emergency Severity",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6160,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json._patientEmail }}",
+        "subject": "=\u26a0\ufe0f URGENT: Medical Emergency Alert - Medilens",
+        "message": "=\u26a0\ufe0f Important Medical Notice \u26a0\ufe0f\n\nDear Patient,\n\nYour symptoms have been assessed and require prompt medical attention.\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\ud83c\udfe5 SPECIALIST ASSESSMENT: {{ $json._specialistName }}\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\ud83d\udccb DIAGNOSIS\n{{ $json.diagnosis }}\n\n\ud83d\udea8 WHY THIS IS URGENT\n{{ $json.emergencyReason }}\n\n\ud83e\ude79 IMMEDIATE FIRST AID\n{{ $json.firstAid }}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u26a1 NEXT STEPS\n1. Visit the nearest emergency department immediately\n2. Call local emergency services if symptoms worsen\n3. Book an appointment: {{ $json._bookingUrl }}\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\nThis is an automated notification from Medilens Hospital.\nIf you have already sought medical care, please disregard this message.\n\nSession ID: {{ $json._sessionId }}",
+        "options": {}
+      },
+      "id": "f23d7cad-8c0a-442b-981f-cf453920d8a2",
+      "name": "Send Patient Warning Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        6448,
+        4048
+      ],
+      "webhookId": "ceabd412-94cd-442e-8fdd-c33300ab0016"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json._doctorEmail }}",
+        "subject": "=\ud83d\udea8 CRITICAL: Patient Emergency Alert - {{ $json._specialistName }} Case",
+        "message": "=\ud83d\udea8 CRITICAL PATIENT ALERT \ud83d\udea8\n\nA patient has been flagged for emergency care.\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nPATIENT DETAILS\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nEmail: {{ $json._patientEmail }}\nSession ID: {{ $json._sessionId }}\nTimestamp: {{ $json._timestamp }}\nSpecialist: {{ $json._specialistName }}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nASSESSMENT\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nDiagnosis: {{ $json.diagnosis }}\n\nEmergency Reason: {{ $json.emergencyReason }}\n\nFirst Aid Recommended: {{ $json.firstAid }}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nPlease contact the patient immediately or prepare for emergency admission.\n\nAutomated Medilens Hospital Triage System",
+        "options": {}
+      },
+      "id": "af61e2a6-4d60-4581-a25f-39e088e02d57",
+      "name": "Send Doctor Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        6448,
+        3664
+      ],
+      "webhookId": "e878cf27-9707-4441-81ef-63ef9a66e022"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "booking-1",
+              "name": "bookingLink",
+              "value": "={{ $json._bookingUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "booking-2",
+              "name": "emergencyStatus",
+              "value": "CRITICAL - Immediate Attention Required",
+              "type": "string"
+            },
+            {
+              "id": "booking-3",
+              "name": "emailsSent",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "f3487d98-0eb7-4f16-9c4a-c4bbb8248a9e",
+      "name": "Prepare Booking Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6688,
+        3856
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  status: 'success',\n  severity: $json.severity,\n  specialist: $json._specialistName,\n  sessionId: $json._sessionId,\n  diagnosis: $json.diagnosis,\n  emergencyReason: $json.emergencyReason,\n  firstAid: $json.firstAid,\n  homeRemedies: $json.homeRemedies,\n  herbalTreatments: $json.herbalTreatments,\n  yoga: $json.yoga,\n  exercise: $json.exercise,\n  lifestyleChanges: $json.lifestyleChanges,\n  diet: $json.diet,\n  bookingLink: $json.bookingLink,\n  emergencyStatus: $json.emergencyStatus,\n  emailsSent: $json.emailsSent\n}) }}",
+        "options": {}
+      },
+      "id": "895d42d0-96c9-454f-a7b0-cf7ee1f17c58",
+      "name": "Return Emergency Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        6928,
+        3856
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  status: 'success',\n  severity: $json.severity,\n  specialist: $json._specialistName,\n  sessionId: $json._sessionId,\n  diagnosis: $json.diagnosis,\n  homeRemedies: $json.homeRemedies,\n  herbalTreatments: $json.herbalTreatments,\n  yoga: $json.yoga,\n  exercise: $json.exercise,\n  lifestyleChanges: $json.lifestyleChanges,\n  diet: $json.diet,\n  firstAid: $json.firstAid,\n  emergencyReason: $json.emergencyReason\n}) }}",
+        "options": {}
+      },
+      "id": "b54a2bc3-4ea3-49f5-9f9e-cd508f4aca3e",
+      "name": "Return Mild Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5712,
+        4160
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Patient Input Webhook').item.json.body.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5232,
+        4128
+      ],
+      "id": "87c87915-8355-41bf-8e5d-760e4836e48b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "tableId": "triage_logs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "timestamp",
+              "fieldValue": "={{ $now }}"
+            },
+            {
+              "fieldId": "session_id",
+              "fieldValue": "={{ $('Patient Input Webhook').item.json.body.sessionId }}"
+            },
+            {
+              "fieldId": "patient_email",
+              "fieldValue": "={{ $('Request Logger').item.json.patientEmail }}"
+            },
+            {
+              "fieldId": "symptoms",
+              "fieldValue": "={{ $('Request Logger').item.json.symptoms }}"
+            },
+            {
+              "fieldId": "client_ip",
+              "fieldValue": "={{ $('Request Logger').item.json.clientIp }}"
+            },
+            {
+              "fieldId": "specialist",
+              "fieldValue": "={{ $('specialist selector').item.json.output }}"
+            },
+            {
+              "fieldId": "severity",
+              "fieldValue": "={{ $json.severity }}"
+            },
+            {
+              "fieldId": "diagnosis",
+              "fieldValue": "={{ $json.diagnosis }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5904,
+        3872
+      ],
+      "id": "6b19badd-bf47-4f16-b98a-518e7527bb29",
+      "name": "Create a row"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Patient Input Webhook": {
+      "main": [
+        [
+          {
+            "node": "Rate Limiter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limiter": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Gate": {
+      "main": [
+        [
+          {
+            "node": "Rate Limited Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auth Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Check": {
+      "main": [
+        [
+          {
+            "node": "Auth Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Gate": {
+      "main": [
+        [
+          {
+            "node": "Input Validator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unauthorized Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Validator": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Input Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Request Logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Logger": {
+      "main": [
+        [
+          {
+            "node": "specialist selector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model12": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "specialist selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "specialist selector",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "specialist selector": {
+      "main": [
+        [
+          {
+            "node": "Specialist Prompt Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Specialist Prompt Builder": {
+      "main": [
+        [
+          {
+            "node": "Specialist Valid Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Specialist Valid Gate": {
+      "main": [
+        [
+          {
+            "node": "Dynamic Specialist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Specialist Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Dynamic Specialist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dynamic Specialist Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent Output Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Output Gate": {
+      "main": [
+        [
+          {
+            "node": "Parse & Normalize Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Failure Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Normalize Response": {
+      "main": [
+        [
+          {
+            "node": "Return Mild Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Emergency Severity": {
+      "main": [
+        [
+          {
+            "node": "Send Patient Warning Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Doctor Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send Patient Warning Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Booking Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Doctor Alert Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Booking Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Booking Info": {
+      "main": [
+        [
+          {
+            "node": "Return Emergency Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Dynamic Specialist Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Check Emergency Severity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "aecb0d45-acbe-4c95-8808-ff7f1c5b3b4f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b00896d6e798efdb616c7036a0b60a37fc954e05a359b6298af912bb007f5b12"
+  },
+  "id": "CuUgTD5zp7H5scSE",
+  "tags": []
+}
