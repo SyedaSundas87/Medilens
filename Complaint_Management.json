@@ -1,0 +1,1717 @@
+{
+  "name": "Department-Based Complaint Management Backend final",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/complaints",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "X-API-Key-Required",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2336,
+        432
+      ],
+      "id": "f1d406fc-9aff-4e46-b95d-6e9c8b00789b",
+      "name": "Webhook: Submit Complaint",
+      "webhookId": "0c7b211c-a493-4caf-893e-98e08fe1ab5d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "high-priority-check",
+              "leftValue": "={{ $json.priority }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        640
+      ],
+      "id": "c114ea57-3e0d-47cb-8fe6-5f35a2a2b0c1",
+      "name": "Check Priority Level"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AF8UJA00P",
+          "mode": "list",
+          "cachedResultName": "all-complaint-management"
+        },
+        "text": "=🚨 *HIGH PRIORITY COMPLAINT!*\n*ID:*{{ $json.complaint_code }}\n*Assigned To Department:* {{ $('Get Department Contact').item.json.name }}\n*Name:* {{ $('Save Complaint to DB').item.json.name }}\n*Type:* {{ $('Save Complaint to DB').item.json.type }}\n*Details:* {{ $('Save Complaint to DB').item.json.details }}\n\n*Action Required:* Please review and respond immediately.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [
+        1648,
+        624
+      ],
+      "id": "4fb693c6-f7b5-46e9-b2be-6359f4d504cc",
+      "name": "Send High Priority Alert",
+      "webhookId": "523ba13f-e2aa-4681-b508-924e01ba5eb1",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "YOUR_SLACK_CREDENTIAL_ID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "audit_logs",
+          "mode": "list",
+          "cachedResultName": "audit_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "performed_by": "=",
+            "details": "={{ $json.details }}",
+            "action": "={{ $json.suggested_actions }}",
+            "complaint_code": "={{ $json.complaint_code }}",
+            "created_at": "={{ $json.created_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "audit_id",
+              "displayName": "audit_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "complaint_code",
+              "displayName": "complaint_code",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "performed_by",
+              "displayName": "performed_by",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "21860645-8c38-4acf-83ff-ba566856074e",
+      "name": "Record Audit Log",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1312,
+        448
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "error_message",
+              "value": "={{ $json.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "error_type",
+              "value": "Database Error",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "55647a8d-0eba-4573-8edb-763fce2599ba",
+      "name": "Handle Database Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        256
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error_code\": \"DATABASE_ERROR\",\n  \"error\": \"Internal server error occurred while processing your complaint.\",\n  \"message\": \"Please try again later or contact support if the issue persists.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "1f09e88c-37ca-47e1-ac5f-fafbead251c9",
+      "name": "Return 500 Server Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1744,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO audit_logs (complaint_id, action, performed_by, details) VALUES (NULL, 'FAILED_CREATION', 'SYSTEM', '{{ $json.error_message }}')",
+        "options": {}
+      },
+      "id": "ae1504ac-95c6-4ba3-a524-907732891ff2",
+      "name": "Log Failed Complaint",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1552,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "complaint_services",
+          "mode": "list",
+          "cachedResultName": "complaint_services"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "service_name",
+              "value": "={{ $json.body.type }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fccaccec-4639-4b46-9727-2c7eb666056e",
+      "name": "Get Department Contact",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        16,
+        496
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.error }}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -368,
+        128
+      ],
+      "id": "6df9770d-1c6b-4b7c-8e8d-6042e21cede3",
+      "name": "Return 409 Duplicate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5d24646e-e037-4180-9c13-04d37ed80096",
+              "leftValue": "={{ $json.body.complaintId }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -896,
+        320
+      ],
+      "id": "dccaa7b4-7731-4cd2-901e-645ef31080c6",
+      "name": "Complaint Already Exists?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error_code\": \"RATE_LIMIT_EXCEEDED\",\n  \"error\": \"Too many requests. Please try again later.\"\n}",
+        "options": {
+          "responseCode": 429
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1728,
+        176
+      ],
+      "id": "d47e7030-53e2-4081-90d3-3da742c8646b",
+      "name": "Return 429 Too Many Requests"
+    },
+    {
+      "parameters": {
+        "content": "## Hospital Complaints Summary Workflow\n**Workflow Purpose:\nThis workflow handles requests to fetch and summarize hospital complaints. When a POST request is received at /complaints, it:\n\nFetches all complaints from the Postgres database.\n\nAggregates the data for easier processing.\n\nComputes a detailed summary including total complaints, status breakdown (Pending/Resolved), priority counts, and grouping by category and department.\n\nReturns the structured JSON summary along with the raw complaints data and a timestamp.\n\nUse Cases:\n\nDisplay complaints summary in hospital admin dashboards.\n\nProvide real-time metrics for monitoring complaint resolution.\n\nFeed data into charts or AI dashboards for visual insights.\n\nMaintenance Tips:\n\nEnsure Postgres credentials are updated in the Fetch Complaints from Postgres node.\n\nAdjust the code node if new complaint fields are added.\n\nUse color-coded charts in the frontend using the summary data (Pending = yellow, High Priority = red, Resolved = green)**",
+        "height": 640,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1840,
+        992
+      ],
+      "typeVersion": 1,
+      "id": "47cba9be-4013-4057-b4e2-714571485313",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "complaints",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1136,
+        1056
+      ],
+      "id": "37d758e9-f0ec-40ad-8925-f20567aa750a",
+      "name": "Complaints Webhook",
+      "webhookId": "be571f66-9137-4e17-b80e-a0d561de2b81"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "complaints",
+          "mode": "list",
+          "cachedResultName": "complaints"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -928,
+        1056
+      ],
+      "id": "2d19a1e9-66a3-4b9a-a758-816b6dd76610",
+      "name": "Fetch Complaints from Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        1056
+      ],
+      "id": "2eb2dde3-b39e-4740-b754-5ec20bf9294c",
+      "name": "Aggregate Complaints Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract data from Aggregate node\nconst input = $input.first().json;\n\n// Extract the actual complaints array\nconst complaints = input.data || []; // <--- fixed here\n\n// Helper functions\nconst getCount = (arr) => Array.isArray(arr) ? arr.length : 0;\nconst countBy = (arr, prop, value) => {\n  if (!Array.isArray(arr)) return 0;\n  return arr.filter(item => item && item[prop] === value).length;\n};\nconst groupBy = (arr, prop) => {\n  if (!Array.isArray(arr)) return {};\n  return arr.reduce((acc, item) => {\n    if (item && item[prop] != null) {\n      const key = item[prop];\n      acc[key] = (acc[key] || 0) + 1;\n    }\n    return acc;\n  }, {});\n};\n\n// Calculate complaints stats\nconst stats = {\n  total: getCount(complaints),\n  pending: countBy(complaints, 'status', 'Pending'),\n  resolved: countBy(complaints, 'status', 'Resolved'),\n  lowPriority: countBy(complaints, 'priority', 'Low'),\n  mediumPriority: countBy(complaints, 'priority', 'Medium'),\n  highPriority: countBy(complaints, 'priority', 'High'),\n  byCategory: groupBy(complaints, 'category'),\n  byDepartment: groupBy(complaints, 'department_id')\n};\n\n// Return formatted complaints summary\nreturn [{\n  json: {\n    summary: stats,\n    data: complaints,\n    timestamp: new Date().toISOString(),\n    recordCount: getCount(complaints)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -512,
+        1056
+      ],
+      "id": "a4941b06-45bf-4236-adb6-1127e4414f65",
+      "name": "Compute Complaints Summary"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        1056
+      ],
+      "id": "4c87d435-459d-4091-b482-462e6f706427",
+      "name": "Return Complaints Summary"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Example simple IP-based rate limit (in-memory — not cluster safe)\n\nconst ip = $json.headers[\"x-forwarded-for\"] || \"unknown\";\n\nif (!global.rateLimit) {\n  global.rateLimit = {};\n}\n\nconst now = Date.now();\nconst windowMs = 60 * 1000; // 1 minute\nconst maxRequests = 10;\n\nif (!global.rateLimit[ip]) {\n  global.rateLimit[ip] = [];\n}\n\n// Remove old timestamps\nglobal.rateLimit[ip] = global.rateLimit[ip].filter(\n  timestamp => now - timestamp < windowMs\n);\n\nif (global.rateLimit[ip].length >= maxRequests) {\n  throw new Error(\"RATE_LIMIT_EXCEEDED\");\n}\n\nglobal.rateLimit[ip].push(now);\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2144,
+        432
+      ],
+      "id": "03113cb8-75d7-41d3-9427-f8b77ca38ada",
+      "name": "Rate Limit Check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "896048fa-e5dd-4235-a66a-3c4b51c13cac",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1936,
+        432
+      ],
+      "id": "e5016675-15fc-4cbb-ab71-b3310d839eaa",
+      "name": "Rate Limit Exceeded?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "747f7809-3797-45fd-975d-bf0bd04c0763",
+              "leftValue": "={{ $json.headers[\"x-api-key\"] }}",
+              "rightValue": "YOUR_API_KEY_HERE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1728,
+        448
+      ],
+      "id": "9e46af08-c944-42fd-8881-480ba2edc29c",
+      "name": "API Key Validation"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error_code\": \"UNAUTHORIZED\",\n  \"error\": \"Unauthorized: Invalid or missing API Key.\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1488,
+        544
+      ],
+      "id": "48bef78b-08fc-4353-8406-1bf1c54d5cbb",
+      "name": "Return 401 Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\nconst normalizedBody = {};\nfor (const key in body) {\n  normalizedBody[key.toLowerCase()] = body[key];\n}\n\nconst requiredFields = ['name', 'email', 'phone', 'details', 'type', 'priority'];\nconst missingFields = requiredFields.filter(field => !normalizedBody[field]);\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        304
+      ],
+      "id": "f30c55f3-72a2-4700-9c90-bd5fbcdd5256",
+      "name": "Validate Complaint Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.error }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "556fa799-1cd2-4944-8c3c-360dda56518b",
+      "name": "Validation Error?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error_code\": \"VALIDATION_ERROR\",\n  \"error\": \"={{ $json.error.message }}\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1040,
+        128
+      ],
+      "id": "0e4f856a-9037-4539-bdf0-98480c1a3157",
+      "name": "Return 400 Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b3d2bb35-d4ad-4fcc-9064-7b71de9cabf7",
+              "name": "body.name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "371a0b7e-0e7e-4ef7-9853-9f571acf398a",
+              "name": "body.email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e7b9d5f7-51be-41a6-b427-baa9969bdb2e",
+              "name": "body.phone",
+              "value": "={{ $json.body.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "a19578aa-b1ee-4ef1-b78c-b469ffb8ee2b",
+              "name": "body.details",
+              "value": "={{ $json.body.details }}",
+              "type": "string"
+            },
+            {
+              "id": "d7b7e64e-144f-4ba6-b4d1-fbb9bbf4e8f2",
+              "name": "body.type",
+              "value": "={{ $json.body.type }}",
+              "type": "string"
+            },
+            {
+              "id": "48da2c29-4125-4ac2-8425-70f7a688c599",
+              "name": "body.priority",
+              "value": "={{ $json.body.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "55c048f2-56c0-4c1f-b695-e45fe174ec40",
+              "name": "body.complaint_id",
+              "value": "={{ $json.body.complaintId }}",
+              "type": "string"
+            },
+            {
+              "id": "cd9afc30-90e6-4aec-bffc-185d344b2d55",
+              "name": "body.createdAt",
+              "value": "={{ $json.body.createdAt }}",
+              "type": "string"
+            },
+            {
+              "id": "35b26143-ecf8-4097-8cf3-f1fb84ad9132",
+              "name": "body.updatedAt",
+              "value": "={{ $json.body.updatedAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -992,
+        512
+      ],
+      "id": "46a6e3b5-8e71-4283-af8e-a3f29eb38dc5",
+      "name": "Prepare Complaint Data"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "complaints",
+          "mode": "list",
+          "cachedResultName": "complaints"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "complaint_code",
+              "value": "={{ $json.body.complaintId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1072,
+        320
+      ],
+      "id": "97e7fe34-916a-457f-bac8-18afee2fc5fb",
+      "name": "Query Complaint DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "useDataOfInput": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -672,
+        352
+      ],
+      "id": "86744b12-db02-4f55-9283-eaf570b0925e",
+      "name": "Combine Complaint Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    success: false,\n    error_code: \"DUPLICATE_COMPLAINT\",\n    error: \"You have already filed this complaint before.\",\n  },\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        128
+      ],
+      "id": "14b2bb94-a5a2-4d6a-aa02-3bb591ef409c",
+      "name": "Generate Duplicate Error"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b41d32a8-c567-4f5b-9e20-c496eab0f295",
+              "name": "error",
+              "value": "={{ $json.error }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        128
+      ],
+      "id": "c9796b8a-ab17-4357-96f4-621c18e8560a",
+      "name": "Map Error Field"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31bbc8d5-7568-44d6-8895-c6a10b477cba",
+              "name": "body.name",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "d9a67b08-9e90-445f-8905-9b7c291dfa49",
+              "name": "body.email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "0b1125d6-7d19-46dc-9a8a-563119536dfd",
+              "name": "body.phone",
+              "value": "={{ $json.body.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "0cfe7d42-41cb-45bc-9ace-fe354d22611b",
+              "name": "body.details",
+              "value": "={{ $json.body.details }}",
+              "type": "string"
+            },
+            {
+              "id": "db3460f9-706a-4618-ae39-9ef09e0f15d6",
+              "name": "body.type",
+              "value": "={{ $json.body.type }}",
+              "type": "string"
+            },
+            {
+              "id": "048d99fc-ca6a-4780-b7ed-58bbeb8843b8",
+              "name": "body.priority",
+              "value": "={{ $json.body.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "f2c77823-7237-439f-abaf-9913c5d857c5",
+              "name": "body.complaint_id",
+              "value": "={{ $json.body.complaint_id }}",
+              "type": "string"
+            },
+            {
+              "id": "208e91bc-0c43-4b8e-ac52-0aafbc1076af",
+              "name": "body.createdAt",
+              "value": "={{ $json.body.createdAt }}",
+              "type": "string"
+            },
+            {
+              "id": "79da85f8-580f-49f0-aab7-a6dfc40745d4",
+              "name": "body.updatedAt",
+              "value": "={{ $json.body.updatedAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        352
+      ],
+      "id": "f343f04e-cb15-41c7-a580-2fbb7f952c36",
+      "name": "Finalize Complaint Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI Complaint Processing Agent.\n\nYour task is to analyze the given complaint text and perform only the following:\n\nSentiment Analysis\n\nDetermine the overall sentiment of the complaint:\n\nNegative (angry, frustrated, dissatisfied, complaint-focused)\n\nNeutral (informational, balanced tone, simple request)\n\nPositive (appreciation, praise, satisfaction)\n\nBase the sentiment strictly on tone and wording.\n\nSuggested Action\n\nProvide a clear, practical, and operational recommended action.\n\nThe action must be specific and directly helpful for resolving the issue.\n\nAvoid generic advice like \"handle appropriately.\"\n\nExamples:\n\n\"Contact customer within 24 hours to resolve the issue.\"\n\n\"Issue refund after verifying transaction details.\"\n\n\"Escalate to technical team for investigation.\"\n\n\"Provide product replacement and arrange return pickup.\"\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        16
+      ],
+      "id": "63d71261-794e-4818-bed7-e0f9696f70ce",
+      "name": "Analyze Complaint AI"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        0,
+        224
+      ],
+      "id": "29da5069-d078-4ff6-85c6-db2708b32cef",
+      "name": "AI Language Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"sentiment\": \"Negative | Neutral | Positive\",\n  \"suggested_action\": \"Clear and actionable next step\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        240
+      ],
+      "id": "27c3f56f-5f88-4023-bc6a-fc895af8fd2e",
+      "name": "Parse AI Output"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1c97e1f-4c65-4797-a8ef-fe7e3ae5589c",
+              "name": "suggested_action",
+              "value": "={{ $json.output.suggested_action }}",
+              "type": "string"
+            },
+            {
+              "id": "6d40c236-ef82-4aad-87f8-005586e7f3c5",
+              "name": "output.sentiment",
+              "value": "={{ $json.output.sentiment }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        160
+      ],
+      "id": "1fc837c3-2d76-4df1-84d2-7ccc742a851d",
+      "name": "Map AI Output"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "numberInputs": 3,
+        "query": "SELECT input1.suggested_action, input1.output.sentiment as sentiment, input2.body.name, input2.body.email, input2.body.phone, input2.body.details, input2.body.type, input2.body.priority, input2.body.complaint_id,  input2.body.createdAt, input2.body.updatedAt, input3.department_id as department_info FROM input1, input2, input3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        576,
+        336
+      ],
+      "id": "f054104e-ea30-4a81-a8ad-588f97392c53",
+      "name": "Combine Complaint & AI Data"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "complaints",
+          "mode": "list",
+          "cachedResultName": "complaints"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "department_id": "={{ $json.department_info }}",
+            "suggested_actions": "={{ $json.suggested_action }}",
+            "sentiment": "={{ $json.sentiment }}",
+            "priority": "={{ $json['input2.body->priority'] }}",
+            "category": "={{ $json['input2.body->type'] }}",
+            "type": "={{ $json['input2.body->type'] }}",
+            "details": "={{ $json['input2.body->details'] }}",
+            "phone": "={{ $json['input2.body->phone'] }}",
+            "email": "={{ $json['input2.body->email'] }}",
+            "name": "={{ $json['input2.body->name'] }}",
+            "complaint_code": "={{ $json['input2.body->complaint_id'] }}",
+            "created_at": "={{ $json['input2.body->createdAt'] }}",
+            "updated_at": "={{ $json['input2.body->updatedAt'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "complaint_id",
+              "displayName": "complaint_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "suggested_actions",
+              "displayName": "suggested_actions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "complaint_code",
+              "displayName": "complaint_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "department_id",
+              "displayName": "department_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ba286211-c08b-40b9-aa07-8f06f719a096",
+      "name": "Save Complaint to DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        800,
+        352
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.error }}",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "654d8503-dcd7-418d-a9ad-8c1ed1bcd72c",
+      "name": "Check DB Insert Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "532c5913-cd79-4ca6-bc3c-6e0066e41d84",
+              "name": "department_id",
+              "value": "={{ $json.service_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        496
+      ],
+      "id": "82a0c8d9-cb90-40c0-b363-d03aba0901cb",
+      "name": "Get Dept ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "// inputData contains all items coming from the previous node\nreturn items.map(item => {\n    // Get complaint_code from the input\n    const complaintCode = item.json.complaint_code;\n\n    // Craft message dynamically\n    return {\n        json: {\n            message: `Your complaint has been submitted. Your complaint code is ${complaintCode}`\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        800
+      ],
+      "id": "aa1e2e83-8aa1-4435-8f4f-67cde683d15b",
+      "name": "Generate Confirmation Message"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1872,
+        800
+      ],
+      "id": "9778daa4-258a-4f93-8e65-7836dd35933e",
+      "name": "Send Response to User"
+    },
+    {
+      "parameters": {
+        "content": "## Complaint Submission Workflow\n**Purpose:\nHandles incoming complaints via webhook (POST /v1/complaints) with validation, AI analysis, DB storage, auditing, and alerts for high-priority complaints.\n\nFlow Overview\n\nWebhook Entry – Receives complaint JSON with API key.\n\nRate Limit Check – Max 10 requests/min per IP → 429 if exceeded.\n\nAPI Key Validation – Returns 401 if invalid/missing.\n\nInput Validation – Ensures name, email, phone, details, type, priority → 400 if missing.\n\nDuplicate Check – Checks DB for existing complaint → 409 if duplicate.\n\nNormalize & Prepare Data – Standardizes fields for processing.\n\nAI Analysis – Determines sentiment and suggested action using Google Gemini.\n\nDepartment Lookup – Finds responsible department for complaint.\n\nSave to DB – Inserts complaint with AI output; logs errors → 500 if DB fails.\n\nAudit Logging – Records all actions in audit_logs.\n\nHigh-Priority Alert – Sends Slack message if priority = High.\n\nUser Response – Confirms submission with complaint code.\n\nError Responses\n\n400 – Missing fields\n\n401 – Invalid API key\n\n409 – Duplicate complaint\n\n429 – Rate limit exceeded\n\n500 – Database error\n\nKey Features\n\nAI-powered sentiment & suggested action\n\nHigh-priority Slack alerts\n\nFull audit trail\n\nDuplicate & rate-limit protection**",
+        "height": 1040,
+        "width": 912,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2928,
+        -272
+      ],
+      "typeVersion": 1,
+      "id": "586a6175-9c39-4567-a42a-6a099e6d08c9",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "complaint submission",
+        "emailType": "text",
+        "message": "=Hello ,{{ $json.name }}\n\nYour complaint has been successfully submitted.\n\nTicket ID: {{ $json.complaint_code }}\n\nIssue Type: {{ $json.type }}\n\nOur support team will review your request and get back to you shortly.\n\nThank you for contacting support.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        624
+      ],
+      "id": "0020f51c-fa24-4d7d-a37c-702b0488a978",
+      "name": "Send Cancellation Email",
+      "webhookId": "03890666-29b9-4aee-9910-0b4045a6f628",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Submit Complaint": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Priority Level": {
+      "main": [
+        [
+          {
+            "node": "Send High Priority Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send High Priority Alert": {
+      "main": [
+        []
+      ]
+    },
+    "Handle Database Error": {
+      "main": [
+        [
+          {
+            "node": "Log Failed Complaint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Failed Complaint": {
+      "main": [
+        [
+          {
+            "node": "Return 500 Server Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Department Contact": {
+      "main": [
+        [
+          {
+            "node": "Get Dept ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complaint Already Exists?": {
+      "main": [
+        [
+          {
+            "node": "Generate Duplicate Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Combine Complaint Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complaints Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Complaints from Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Complaints from Postgres": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Complaints Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Complaints Data": {
+      "main": [
+        [
+          {
+            "node": "Compute Complaints Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Complaints Summary": {
+      "main": [
+        [
+          {
+            "node": "Return Complaints Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Exceeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Exceeded?": {
+      "main": [
+        [
+          {
+            "node": "Return 429 Too Many Requests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "API Key Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Key Validation": {
+      "main": [
+        [
+          {
+            "node": "Validate Complaint Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return 401 Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Complaint Fields": {
+      "main": [
+        [
+          {
+            "node": "Validation Error?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Error?": {
+      "main": [
+        [
+          {
+            "node": "Return 400 Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Query Complaint DB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Complaint Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Complaint Data": {
+      "main": [
+        [
+          {
+            "node": "Combine Complaint Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Query Complaint DB": {
+      "main": [
+        [
+          {
+            "node": "Complaint Already Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Complaint Data": {
+      "main": [
+        [
+          {
+            "node": "Finalize Complaint Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Duplicate Error": {
+      "main": [
+        [
+          {
+            "node": "Map Error Field",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Error Field": {
+      "main": [
+        [
+          {
+            "node": "Return 409 Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Complaint Fields": {
+      "main": [
+        [
+          {
+            "node": "Analyze Complaint AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Department Contact",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Combine Complaint & AI Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Analyze Complaint AI": {
+      "main": [
+        [
+          {
+            "node": "Map AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Language Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Complaint AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Analyze Complaint AI",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map AI Output": {
+      "main": [
+        [
+          {
+            "node": "Combine Complaint & AI Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Complaint & AI Data": {
+      "main": [
+        [
+          {
+            "node": "Save Complaint to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Complaint to DB": {
+      "main": [
+        [
+          {
+            "node": "Check DB Insert Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Cancellation Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check DB Insert Success": {
+      "main": [
+        [
+          {
+            "node": "Handle Database Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record Audit Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Priority Level",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Dept ID": {
+      "main": [
+        [
+          {
+            "node": "Combine Complaint & AI Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Generate Confirmation Message": {
+      "main": [
+        [
+          {
+            "node": "Send Response to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Karachi",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "c2297e97-ebe6-4a50-98f4-749e1e99f55a",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "F7yyt3xK0LdKngCk",
+  "tags": []
+}
