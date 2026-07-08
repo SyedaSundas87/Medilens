@@ -1,0 +1,1528 @@
+{
+  "name": "hospital-data-ingestion final",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/admin/ai/suggestion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2224,
+        48
+      ],
+      "id": "5f031461-7ef4-4061-b04a-9808b062dbe9",
+      "name": "Webhook: Dashboard Data",
+      "webhookId": "aef4f4f7-c718-4b5d-acd5-6aa20fd8ee82"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH doctors_cte AS (\n  SELECT * FROM doctors\n),\nnurses_cte AS (\n  SELECT * FROM nurses\n),\npatients_cte AS (\n  SELECT * FROM patients\n),\nbeds_cte AS (\n  SELECT * FROM beds\n),\nappointments_cte AS (\n  SELECT * FROM appointments\n),\nrisk_patients_cte AS (\n  SELECT * FROM risk_patients\n)\nSELECT \n  (SELECT json_agg(doctors_cte) FROM doctors_cte) AS doctors,\n  (SELECT json_agg(nurses_cte) FROM nurses_cte) AS nurses,\n  (SELECT json_agg(patients_cte) FROM patients_cte) AS patients,\n  (SELECT json_agg(beds_cte) FROM beds_cte) AS beds,\n  (SELECT json_agg(appointments_cte) FROM appointments_cte) AS appointments,\n  (SELECT json_agg(risk_patients_cte) FROM risk_patients_cte) AS risk_patients;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -2000,
+        48
+      ],
+      "id": "45949543-a570-485e-8b5d-0666c60fa723",
+      "name": "Fetch All Hospital Data (Supabase)",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract data from Supabase result\nconst data = $input.first().json;\n\n// Helper function to safely get array length\nconst getCount = (arr) => Array.isArray(arr) ? arr.length : 0;\n\n// Helper function to count by property value\nconst countBy = (arr, prop, value) => {\n  if (!Array.isArray(arr)) return 0;\n  return arr.filter(item => item && item[prop] === value).length;\n};\n\n// Helper function to group by property\nconst groupBy = (arr, prop) => {\n  if (!Array.isArray(arr)) return {};\n  return arr.reduce((acc, item) => {\n    if (item && item[prop]) {\n      const key = item[prop];\n      acc[key] = (acc[key] || 0) + 1;\n    }\n    return acc;\n  }, {});\n};\n\n// Extract arrays\nconst doctors = data.doctors || [];\nconst nurses = data.nurses || [];\nconst patients = data.patients || [];\nconst beds = data.beds || [];\nconst appointments = data.appointments || [];\nconst riskPatients = data.risk_patients || [];\n\n// Calculate statistics\nconst stats = {\n  doctors: {\n    total: getCount(doctors),\n    onDuty: countBy(doctors, 'status', 'On Duty'),\n    offDuty: countBy(doctors, 'status', 'Off Duty'),\n    byDepartment: groupBy(doctors, 'department'),\n    bySpecialty: groupBy(doctors, 'specialty')\n  },\n  nurses: {\n    total: getCount(nurses),\n    active: countBy(nurses, 'status', 'Active'),\n    onBreak: countBy(nurses, 'status', 'On Break'),\n    byDepartment: groupBy(nurses, 'department'),\n    byShift: groupBy(nurses, 'shift')\n  },\n  patients: {\n    total: getCount(patients),\n    inTreatment: countBy(patients, 'status', 'In Treatment'),\n    admitted: countBy(patients, 'status', 'Admitted'),\n    discharged: countBy(patients, 'status', 'Discharged'),\n    byRiskLevel: groupBy(patients, 'risk_level'),\n    byDepartment: groupBy(patients, 'department')\n  },\n  beds: {\n    total: getCount(beds),\n    available: countBy(beds, 'status', 'Available'),\n    occupied: countBy(beds, 'status', 'Occupied'),\n    maintenance: countBy(beds, 'status', 'Maintenance'),\n    byType: groupBy(beds, 'type'),\n    byDepartment: groupBy(beds, 'department'),\n    occupancyRate: getCount(beds) > 0 ? \n      ((countBy(beds, 'status', 'Occupied') / getCount(beds)) * 100).toFixed(2) : 0\n  },\n  appointments: {\n    total: getCount(appointments),\n    confirmed: countBy(appointments, 'status', 'Confirmed'),\n    pending: countBy(appointments, 'status', 'Pending'),\n    completed: countBy(appointments, 'status', 'Completed'),\n    cancelled: countBy(appointments, 'status', 'Cancelled'),\n    byDepartment: groupBy(appointments, 'department')\n  },\n  riskPatients: {\n    total: getCount(riskPatients),\n    byRiskLevel: groupBy(riskPatients, 'risklevel')\n  }\n};\n\n// Return formatted dashboard data\nreturn [{\n  json: {\n    summary: stats,\n    data: {\n      doctors,\n      nurses,\n      patients,\n      beds,\n      appointments,\n      riskPatients\n    },\n    timestamp: new Date().toISOString(),\n    recordCounts: {\n      doctors: getCount(doctors),\n      nurses: getCount(nurses),\n      patients: getCount(patients),\n      beds: getCount(beds),\n      appointments: getCount(appointments),\n      riskPatients: getCount(riskPatients)\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1792,
+        48
+      ],
+      "id": "1472f0bf-3e9c-4d4d-bdd3-8aeb6368d303",
+      "name": "Format Dashboard Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a hospital admin assistant AI analyzing operational data.\n\nYour task: Generate AI suggestions for hospital operations based on the provided data.\n\nRULES:\n1. Return ONLY the JSON array - no markdown, no explanations, no extra text\n2. Do NOT wrap in code blocks or backticks\n3. All field values must be strings (use \"True\"/\"False\" for booleans)\n4. Generate suggestions for: high-risk patients, overloaded doctors, bed assignments, appointment conflicts\n5. Use dIFFERENT IDs always use different IDS THEY should not match with others \n6. Set critical=\"True\" only for urgent medical situations\n7. Always set approved=\"False\" and executed=\"False\" for new suggestions\n8. Use ISO format for timestamps: YYYY-MM-DD HH:MM:SS"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1600,
+        48
+      ],
+      "id": "6fc6f8a5-fcd9-4510-b707-357ce60ebebd",
+      "name": "AI Operations Agent"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "ai_suggestions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "suggestion_id": "={{ $json.suggestionId }}",
+            "related_sheet": "={{ $json.relatedSheet }}",
+            "entity_id": "={{ $json.entityId }}",
+            "patient_name": "={{ $json.patientName }}",
+            "action": "={{ $json.action }}",
+            "reason": "={{ $json.reason }}",
+            "details": "={{ $json.details }}",
+            "critical": "={{ $json.critical }}",
+            "assigned_to": "={{ $json.assignedTo }}",
+            "executed": "={{ $json.executed }}",
+            "notes": "={{ $json.notes }}",
+            "created_at": "={{ $json.timestamp }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "suggestion_id",
+              "displayName": "suggestion_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "related_sheet",
+              "displayName": "related_sheet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "entity_id",
+              "displayName": "entity_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient_name",
+              "displayName": "patient_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "approved_rejected",
+              "displayName": "approved_rejected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "assigned_to",
+              "displayName": "assigned_to",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "executed",
+              "displayName": "executed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executed_at",
+              "displayName": "executed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output_text",
+              "displayName": "output_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1072,
+        48
+      ],
+      "id": "023d1e57-bec6-42cf-b844-310bea72d01c",
+      "name": "Store Suggestions (Supabase)",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"suggestionId\": \"SUG001\",\n    \"relatedSheet\": \"Risk Patients\",\n    \"entityId\": \"241747\",\n    \"patientName\": \"Ura Palmer\",\n    \"action\": \"Monitor high-risk patient\",\n    \"reason\": \"High risk with symptoms: Palpitations\",\n    \"details\": \"Ura Palmer (Session ID: 241747) has High risk with symptoms: Palpitations.\",\n    \"critical\": \"True\",\n    \"approved\": \"False\",\n    \"assignedTo\": \"\",\n    \"timestamp\": \"2025-12-07 15:30:00\",\n    \"executed\": \"False\",\n    \"executedAt\": \"\",\n    \"notes\": \"\"\n  }\n]",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1488,
+        240
+      ],
+      "id": "5859ea37-a371-4492-a0ee-9b000772ae95",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "id": "5830b39a-942b-4d58-a62f-0fb19519adfa",
+      "name": "Split Suggestions",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1600,
+        256
+      ],
+      "id": "854ce814-acab-467a-aad5-546450502763",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1488,
+        416
+      ],
+      "id": "e264a3ac-8533-425c-b208-772f404200a0",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/admin/dashboard/data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1ec76949-45ad-44bc-bb64-2f90942adf0e",
+      "name": "Receive Dashboard Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        176
+      ],
+      "webhookId": "e78fb36e-3999-4ba4-bc4f-14e1df7fae4c"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH doctors_cte AS (\n  SELECT * FROM doctors\n),\nnurses_cte AS (\n  SELECT * FROM nurses\n),\npatients_cte AS (\n  SELECT * FROM patients\n),\nbeds_cte AS (\n  SELECT * FROM beds\n),\nappointments_cte AS (\n  SELECT * FROM appointments\n),\nrisk_patients_cte AS (\n  SELECT * FROM risk_patients\n),\nai_suggestions_cte AS (\n  SELECT * FROM ai_suggestions ORDER BY created_at DESC\n)\n\nSELECT \n  (SELECT json_agg(doctors_cte) FROM doctors_cte) AS doctors,\n  (SELECT json_agg(nurses_cte) FROM nurses_cte) AS nurses,\n  (SELECT json_agg(patients_cte) FROM patients_cte) AS patients,\n  (SELECT json_agg(beds_cte) FROM beds_cte) AS beds,\n  (SELECT json_agg(appointments_cte) FROM appointments_cte) AS appointments,\n  (SELECT json_agg(risk_patients_cte) FROM risk_patients_cte) AS risk_patients,\n  (SELECT json_agg(ai_suggestions_cte) FROM ai_suggestions_cte) AS ai_suggestions;",
+        "options": {}
+      },
+      "id": "87c7f72b-5c64-4e2c-a1a7-4a3b2016b4d8",
+      "name": "Query Hospital Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        16
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "id": "8f11dbd1-bbb6-4c02-bb0a-daaa1c2b1ab2",
+      "name": "Send Dashboard Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        624,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract data from Supabase result\nconst data = $input.first().json;\n\n// Helper function to safely get array length\nconst getCount = (arr) => Array.isArray(arr) ? arr.length : 0;\n\n// Helper function to count by property value\nconst countBy = (arr, prop, value) => {\n  if (!Array.isArray(arr)) return 0;\n  return arr.filter(item => item && item[prop] === value).length;\n};\n\n// Helper function to group by property\nconst groupBy = (arr, prop) => {\n  if (!Array.isArray(arr)) return {};\n  return arr.reduce((acc, item) => {\n    if (item && item[prop]) {\n      const key = item[prop];\n      acc[key] = (acc[key] || 0) + 1;\n    }\n    return acc;\n  }, {});\n};\n\n// Extract arrays\nconst doctors = data.doctors || [];\nconst nurses = data.nurses || [];\nconst patients = data.patients || [];\nconst beds = data.beds || [];\nconst appointments = data.appointments || [];\nconst riskPatients = data.risk_patients || [];\n\n// Calculate statistics\nconst stats = {\n  doctors: {\n    total: getCount(doctors),\n    onDuty: countBy(doctors, 'status', 'On Duty'),\n    offDuty: countBy(doctors, 'status', 'Off Duty'),\n    byDepartment: groupBy(doctors, 'department'),\n    bySpecialty: groupBy(doctors, 'specialty')\n  },\n  nurses: {\n    total: getCount(nurses),\n    active: countBy(nurses, 'status', 'Active'),\n    onBreak: countBy(nurses, 'status', 'On Break'),\n    byDepartment: groupBy(nurses, 'department'),\n    byShift: groupBy(nurses, 'shift')\n  },\n  patients: {\n    total: getCount(patients),\n    inTreatment: countBy(patients, 'status', 'In Treatment'),\n    admitted: countBy(patients, 'status', 'Admitted'),\n    discharged: countBy(patients, 'status', 'Discharged'),\n    byRiskLevel: groupBy(patients, 'risk_level'),\n    byDepartment: groupBy(patients, 'department')\n  },\n  beds: {\n    total: getCount(beds),\n    available: countBy(beds, 'status', 'Available'),\n    occupied: countBy(beds, 'status', 'Occupied'),\n    maintenance: countBy(beds, 'status', 'Maintenance'),\n    byType: groupBy(beds, 'type'),\n    byDepartment: groupBy(beds, 'department'),\n    occupancyRate: getCount(beds) > 0 ? \n      ((countBy(beds, 'status', 'Occupied') / getCount(beds)) * 100).toFixed(2) : 0\n  },\n  appointments: {\n    total: getCount(appointments),\n    confirmed: countBy(appointments, 'status', 'Confirmed'),\n    pending: countBy(appointments, 'status', 'Pending'),\n    completed: countBy(appointments, 'status', 'Completed'),\n    cancelled: countBy(appointments, 'status', 'Cancelled'),\n    byDepartment: groupBy(appointments, 'department')\n  },\n  riskPatients: {\n    total: getCount(riskPatients),\n    byRiskLevel: groupBy(riskPatients, 'risklevel')\n  }\n};\n\n// Return formatted dashboard data\nreturn [{\n  json: {\n    summary: stats,\n    data: {\n      doctors,\n      nurses,\n      patients,\n      beds,\n      appointments,\n      riskPatients\n    },\n    timestamp: new Date().toISOString(),\n    recordCounts: {\n      doctors: getCount(doctors),\n      nurses: getCount(nurses),\n      patients: getCount(patients),\n      beds: getCount(beds),\n      appointments: getCount(appointments),\n      riskPatients: getCount(riskPatients)\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        16
+      ],
+      "id": "9f43c92b-9b04-492d-b555-fbb02e2097a2",
+      "name": "Calculate Dashboard Stats"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get dashboard data from first input\nconst dashboardData = $input.first().json;\n\n// Get AI suggestions from second input\nconst suggestions = $input.last().json['ai suggestions'] || [];\n\n// Merge suggestions into the data object\nreturn [{\n  json: {\n    summary: {\n      ...dashboardData.summary,\n      suggestions: {\n        total: suggestions.length,\n        critical: suggestions.filter(s => s.critical === true).length,\n        pending: suggestions.filter(s => s.approved === false).length\n      }\n    },\n    data: {\n      ...dashboardData.data,\n      suggestions: suggestions\n    },\n    timestamp: dashboardData.timestamp,\n    recordCounts: {\n      ...dashboardData.recordCounts,\n      suggestions: suggestions.length\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        32
+      ],
+      "id": "fd5e9b74-2f75-4d58-b259-23b621d7f1e0",
+      "name": "Merge AI Suggestions"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        256,
+        32
+      ],
+      "id": "05de208c-1081-4019-99cd-f39607b956ea",
+      "name": "Combine Data Streams"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bce22e1c-ab83-442a-b402-c64094bfc0d9",
+              "name": "suggestion_id",
+              "value": "={{ $json.suggestion_id }}",
+              "type": "string"
+            },
+            {
+              "id": "7a8fafd7-1dc0-4b52-b9b0-ab2101cde662",
+              "name": "related_sheet",
+              "value": "={{ $json.related_sheet }}",
+              "type": "string"
+            },
+            {
+              "id": "e603412c-73bd-4e8c-a26f-c9cbd3d47777",
+              "name": "entity_id",
+              "value": "={{ $json.entity_id }}",
+              "type": "string"
+            },
+            {
+              "id": "1956129a-2653-4fc1-8897-2af6ba0c41af",
+              "name": "patient_name",
+              "value": "={{ $json.patient_name }}",
+              "type": "string"
+            },
+            {
+              "id": "7f320dbe-6fba-4483-9092-51a33bf33bb2",
+              "name": "action",
+              "value": "={{ $json.action }}",
+              "type": "string"
+            },
+            {
+              "id": "d95fc06c-ecbf-463d-83fd-afffa47f26ce",
+              "name": "reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "ff89a559-7b0d-443b-857a-dafc8e10655b",
+              "name": "details",
+              "value": "={{ $json.details }}",
+              "type": "string"
+            },
+            {
+              "id": "53c89b10-df54-4b44-834b-9905985ac428",
+              "name": "critical",
+              "value": "={{ $json.critical }}",
+              "type": "boolean"
+            },
+            {
+              "id": "3eb270c5-981c-4851-8975-ae100b2cd69b",
+              "name": "assigned_to",
+              "value": "={{ $json.assigned_to }}",
+              "type": "string"
+            },
+            {
+              "id": "8f778a42-7562-4fdc-be54-fcb9f3894523",
+              "name": "created_at",
+              "value": "={{ $json.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "97b0f320-243a-4972-bd46-c90eee4b71c4",
+              "name": "notes",
+              "value": "={{ $json.notes }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -32,
+        176
+      ],
+      "id": "7cfa124a-a948-431e-bc9a-86559ebed2bf",
+      "name": "Format AI Suggestions"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "ai suggestions",
+        "options": {}
+      },
+      "id": "4dce63b1-5b1b-462f-a992-08f744ad1a70",
+      "name": "Aggregate AI Suggestions",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        272,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ai_suggestions",
+          "mode": "list",
+          "cachedResultName": "ai_suggestions"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -208,
+        176
+      ],
+      "id": "f013ab1c-4312-481e-bf00-bfb0631816d7",
+      "name": "Fetch AI Suggestions",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## HOSPITAL ADMIN DASHBOARD DATA WORKFLOW\n**Purpose:\nProvides real-time hospital dashboard data by fetching, processing, and merging core hospital data and AI suggestions, returning structured JSON to the frontend.\n\nSteps:\n\nDashboard Request – Triggered by a POST request to v1/admin/dashboard/data.\n\nFetch Core Hospital Data – Queries tables: doctors, nurses, patients, beds, appointments, risk_patients, ai_suggestions. Returns JSON arrays.\n\nCalculate Hospital Statistics – Processes data to generate key metrics:\n\nDoctors/Nurses: total, on duty/active, grouped by department/shift/specialty\n\nPatients: total, admitted/in treatment/discharged, grouped by risk level/department\n\nBeds: total, available/occupied/maintenance, occupancy rate, grouped by type/department\n\nAppointments: total, status counts, grouped by department\n\nRisk Patients: total, grouped by risk level\n\nFetch AI Suggestions – Retrieves structured suggestion data from the ai_suggestions table.\n\nFormat & Aggregate Suggestions – Cleans fields and combines all suggestions into a single array.\n\nMerge Data Streams – Combines hospital statistics and AI suggestions into one dataset.\n\nFinal Processing – Adds suggestion metrics (total, critical, pending) to the summary.\n\nReturn Dashboard Response – Sends JSON to the dashboard including: summary stats, detailed data, AI suggestions, record counts, and timestamp.\n\nResult:\nThe dashboard receives a unified, real-time view of hospital operations with analytics and AI insights**",
+        "height": 768,
+        "width": 704
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "86892b27-100e-4562-a333-504fceb7a034",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## HOSPITAL AI SUGGESTION WORKFLOW\n\n**Purpose: Automatically generate and store AI-driven hospital operation suggestions.\n\nTrigger:\n\nPOST request to /v1/admin/ai/suggestion webhook.\n\nSteps:\n\nFetch All Hospital Data (Supabase) – Queries doctors, nurses, patients, beds, appointments, risk_patients.\n\nFormat Dashboard Data – Processes raw data into summary statistics (counts, groupings, occupancy rates).\n\nAI Operations Agent – Generates AI suggestions for:\n\nHigh-risk patients\n\nOverloaded doctors\n\nBed assignments\n\nAppointment conflicts\nRules: JSON output only, unique IDs, critical=\"True\" for urgent issues, approved/executed=\"False\", ISO timestamps.\n\nStructured Output Parser – Converts AI output to structured fields.\n\nSplit Suggestions – Splits suggestions into individual items.\n\nStore Suggestions (Supabase) – Inserts suggestions into ai_suggestions table.\n\nAI Models Used:\n\nGoogle Gemini Chat (for reasoning & output generation)\n\nOutput:\n\nNew AI suggestions stored in the database with structured fields: suggestion_id, entity_id, patient_name, action, reason, details, critical, approved, executed, notes, created_at.\n\nResult: Real-time, actionable AI suggestions for hospital operations**",
+        "height": 928,
+        "width": 496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2800,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "ac45ead3-b951-4878-9e9d-48b3820810a1",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hospital/process-suggestion",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook: Process Suggestion",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -3152,
+        1440
+      ],
+      "id": "e884804e-91fa-42cf-b0bc-5a782c1d9722",
+      "webhookId": "f6e7dd0d-1fd3-4c1d-8ebd-0f15c572592d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.headers['x-api-key']}}",
+              "value2": "YOUR_API_KEY_HERE"
+            }
+          ]
+        }
+      },
+      "name": "Check API Key Validity",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2960,
+        1440
+      ],
+      "id": "2faa6794-47b1-4ff0-9a94-4c2da8f42755"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Respond: Unauthorized Access",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -2592,
+        1696
+      ],
+      "id": "5d4ae563-0b8d-44d4-83ec-865137635756"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a6c21046-6f01-44ba-a7cb-38bf07ea082d",
+              "name": "body.suggestionId",
+              "value": "={{ $json.body.suggestionId }}",
+              "type": "string"
+            },
+            {
+              "id": "e244c3af-e010-4b34-907f-a82e65032d96",
+              "name": "approved/rejected",
+              "value": "={{ $json.body.status }}",
+              "type": "string"
+            },
+            {
+              "id": "bd857ced-62b3-4396-887d-d036c0a9d96d",
+              "name": "body.timestamp",
+              "value": "={{ $json.body.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2576,
+        1504
+      ],
+      "id": "f2588ee6-746f-405a-a070-f957d0868f5e",
+      "name": "Set Input Fields"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT approved_rejected FROM ai_suggestions WHERE suggestion_id = $1",
+        "options": {
+          "queryReplacement": "={{ $json.body.suggestionId }}"
+        }
+      },
+      "name": "Query Suggestion Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -2592,
+        1296
+      ],
+      "id": "df5f45cd-7b49-4eae-887f-b0b85070cb0a",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.approved_rejected }}",
+              "value2": "pending"
+            }
+          ]
+        }
+      },
+      "name": "Check If Already Processed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2400,
+        1296
+      ],
+      "id": "9362d18b-9f9d-48d0-89b6-dbfee1777fd0"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Respond: Already Processed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -2208,
+        1280
+      ],
+      "id": "be9181d5-087c-41c4-87ee-830c0156d05c"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "useDataOfInput": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2256,
+        1488
+      ],
+      "id": "ed2b7077-35a0-4387-9555-15aa5510cd70",
+      "name": "Merge Inputs for Routing"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['approved/rejected'] }}",
+                    "rightValue": "Approved",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "6e25b076-6cc7-43fc-94ab-1a5816f421e7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "approve"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['approved/rejected'] }}",
+                    "rightValue": "Rejected",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bcb2ba64-98a8-46ec-b18c-5bb8e0c007b5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reject"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "c07ac5ce-74ed-46ef-971a-b4e645449abd",
+      "name": "Switch: Approve/Reject",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2080,
+        1472
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ai_suggestions",
+          "mode": "list",
+          "cachedResultName": "ai_suggestions"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "suggestion_id",
+        "valueToMatchOn": "={{ $json.body.suggestionId }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "approved_rejected",
+              "value": "={{ $json['approved/rejected'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Update Suggestion: Approve",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1792,
+        1280
+      ],
+      "id": "89c3fe7e-bc28-44bd-9a48-4ec7daf39261",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ai_suggestions",
+          "mode": "list",
+          "cachedResultName": "ai_suggestions"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "critical": false,
+            "executed": true,
+            "suggestion_id": "={{ $json.body.suggestionId }}",
+            "approved_rejected": "={{ $json['approved/rejected'] }}"
+          },
+          "matchingColumns": [
+            "suggestion_id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "suggestion_id",
+              "displayName": "suggestion_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "related_sheet",
+              "displayName": "related_sheet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "entity_id",
+              "displayName": "entity_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient_name",
+              "displayName": "patient_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical",
+              "displayName": "critical",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "approved_rejected",
+              "displayName": "approved_rejected",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "assigned_to",
+              "displayName": "assigned_to",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executed",
+              "displayName": "executed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "executed_at",
+              "displayName": "executed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output_text",
+              "displayName": "output_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5e39d157-c20d-4d27-93ca-c86940468e58",
+      "name": "Update Suggestion: Reject",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1808,
+        1488
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Invalid action. Must be 'approve' or 'reject'\",\n  \"status\": \"error\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "b528d296-f1f0-41e4-8117-8c4f730be9c5",
+      "name": "Respond: Invalid Action",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1808,
+        1664
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "table_name",
+              "value": "={{ $json.related_sheet }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "entity_id",
+              "value": "={{ $json.entity_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "action",
+              "value": "={{ $json.action }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "details",
+              "value": "={{ $json.details }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "status",
+              "value": "={{ $json.approved_rejected }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "762cc14c-4ac8-413e-a910-a15b4604c94b",
+      "name": "Prepare Related Table Update",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1584,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n    const tableName = item.json.table_name;\n    let identifierField = '';\n\n    switch (tableName) {\n        case 'patients':\n            identifierField = 'patient_id';\n            break;\n        case 'risk_patients':\n            identifierField = 'sessionid';\n            break;\n        case 'nurses':\n            identifierField = 'nurse_id';\n            break;\n        case 'doctors':\n            identifierField = 'doctor_id';\n            break;\n        case 'beds':\n            identifierField = 'bed_id';\n            break;\n        case 'appointments':\n            identifierField = 'session_id';\n            break;\n        default:\n            throw new Error(`Unknown table name: ${tableName}`);\n    }\n\n    return {\n        json: {\n            ...item.json,\n            identifier_field: identifierField\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        1280
+      ],
+      "id": "c50bcf8c-2317-4391-b1df-60282f122e88",
+      "name": "Determine Identifier Field"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE {{ $json.table_name }} SET ai_suggestion = $1 WHERE {{ $json.identifier_field }} = '{{ $json.entity_id }}'",
+        "options": {
+          "queryReplacement": "={{ $json.action }} "
+        }
+      },
+      "id": "59df3010-76c4-42f4-b882-c6dc5232c5a6",
+      "name": "Update Corresponding Table",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1168,
+        1280
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "name": "Respond: Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        1280
+      ],
+      "id": "99da6b8d-e0f7-46d2-9017-66b0f415190e"
+    },
+    {
+      "parameters": {
+        "content": "## PROCESS SUGGESTION WORKFLOW\n**Purpose:\nHandles approval or rejection of AI suggestions, updates relevant tables, and returns success/error responses.\n\nSteps:\n\nProcess Suggestion Webhook – Triggered by a POST request to /hospital/process-suggestion.\n\nValidate API Key – Checks the request for a valid API key.\n\nReject Unauthorized – Returns an error if the API key is invalid.\n\nEdit Input Fields – Maps incoming request fields for consistent processing.\n\nCheck Suggestion Status – Queries database to see if the suggestion is already approved/rejected.\n\nIdempotency Check – Determines if the suggestion has already been processed.\n\nAlready Processed Response – Returns a response if suggestion was previously handled.\n\nMerge Inputs for Routing – Combines data streams for decision-making.\n\nRoute Action – Determines whether the action is Approve, Reject, or Invalid.\n\nCall Approval RPC – Updates the suggestion record as “Approved” in the database.\n\nCall Rejection RPC – Updates the suggestion record as “Rejected” in the database.\n\nInvalid Action Response – Returns an error if the action is not recognized.\n\nPrepare Sheet Update Data – Prepares mapped data to update the related table.\n\nDetermine Identifier Field – Identifies the primary key field for the target table based on its type.\n\nUpdate Related Table – Updates the corresponding record with the suggestion action.\n\nSuccess Response – Sends a final success response after all updates are completed.\n\nResult:\nThe workflow ensures each AI suggestion is processed safely, updates related records, maintains idempotency, and returns structured success or error responses**",
+        "height": 832,
+        "width": 752
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -768,
+        1024
+      ],
+      "typeVersion": 1,
+      "id": "989c5627-868a-49a4-831a-05c05fd6ee10",
+      "name": "Sticky Note2"
+    }
+  ],
+  "connections": {
+    "Fetch All Hospital Data (Supabase)": {
+      "main": [
+        [
+          {
+            "node": "Format Dashboard Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Dashboard Data": {
+      "main": [
+        [
+          {
+            "node": "AI Operations Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Operations Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Dashboard Data": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Hospital Data (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Operations Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Store Suggestions (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Operations Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Suggestions (Supabase)": {
+      "main": [
+        []
+      ]
+    },
+    "Receive Dashboard Request": {
+      "main": [
+        [
+          {
+            "node": "Query Hospital Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch AI Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Hospital Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate Dashboard Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Dashboard Stats": {
+      "main": [
+        [
+          {
+            "node": "Combine Data Streams",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Send Dashboard Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Data Streams": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format AI Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Aggregate AI Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate AI Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Combine Data Streams",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fetch AI Suggestions": {
+      "main": [
+        [
+          {
+            "node": "Format AI Suggestions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook: Process Suggestion": {
+      "main": [
+        [
+          {
+            "node": "Check API Key Validity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check API Key Validity": {
+      "main": [
+        [
+          {
+            "node": "Query Suggestion Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Set Input Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: Unauthorized Access",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Input Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge Inputs for Routing",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Query Suggestion Status": {
+      "main": [
+        [
+          {
+            "node": "Check If Already Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Already Processed": {
+      "main": [
+        [
+          {
+            "node": "Respond: Already Processed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Inputs for Routing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Inputs for Routing": {
+      "main": [
+        [
+          {
+            "node": "Switch: Approve/Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Approve/Reject": {
+      "main": [
+        [
+          {
+            "node": "Update Suggestion: Approve",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Suggestion: Reject",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond: Invalid Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Suggestion: Approve": {
+      "main": [
+        [
+          {
+            "node": "Prepare Related Table Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Related Table Update": {
+      "main": [
+        [
+          {
+            "node": "Determine Identifier Field",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Identifier Field": {
+      "main": [
+        [
+          {
+            "node": "Update Corresponding Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Corresponding Table": {
+      "main": [
+        [
+          {
+            "node": "Respond: Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "70d150bd-a2f9-4b05-8cb5-1cefb3cfa30f",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "2DqPQVqgS0iWTJRl",
+  "tags": []
+}
