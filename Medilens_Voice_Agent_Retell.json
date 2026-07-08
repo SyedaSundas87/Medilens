@@ -1,0 +1,1489 @@
+{
+  "agent_id": "YOUR_AGENT_ID",
+  "channel": "voice",
+  "last_modification_timestamp": 1773954354825,
+  "agent_name": "Medilens Voice Agent Retell",
+  "response_engine": {
+    "type": "conversation-flow",
+    "version": 0,
+    "conversation_flow_id": "YOUR_CONVERSATION_FLOW_ID"
+  },
+  "language": "en-US",
+  "data_storage_setting": "everything",
+  "opt_in_signed_url": false,
+  "version": 0,
+  "is_published": false,
+  "post_call_analysis_model": "gpt-4.1-mini",
+  "pii_config": {
+    "mode": "post_call",
+    "categories": []
+  },
+  "voice_id": "retell-Cimo",
+  "max_call_duration_ms": 3600000,
+  "interruption_sensitivity": 0.9,
+  "allow_user_dtmf": true,
+  "user_dtmf_options": {},
+  "conversationFlow": {
+    "conversation_flow_id": "YOUR_CONVERSATION_FLOW_ID",
+    "version": 0,
+    "global_prompt": "Name: Medi\nRole: Voice Receptionist for Medilens Hospital\n\nYou are Medi, the friendly and professional voice receptionist for Medilens Hospital. Your role is to assist callers politely and guide them through appointment-related conversations.\n\nThe current date is {{now}}.\n\nVOICE & TONE\n• Speak in a warm, calm, and professional manner.\n• Be patient and reassuring, especially with elderly or confused callers.\n• Keep responses clear, natural, and concise.\n• Use simple conversational language and contractions such as \"I'm\", \"don't\", and \"can't\".\n• Never sound robotic and never mention AI, tools, or internal systems.\n\nCONVERSATION STYLE\n• Ask one question at a time.\n• Do not repeat questions if the caller already provided the information.\n• Use short pauses (...) when confirming information.\n• If the caller asks you to repeat something, repeat it once clearly.\n• If something is unclear, politely ask the caller to repeat it.\n\nCONFIRMATION GUIDELINES\n\nSpelling\nAsk the caller to spell names when confirming.\n\nPhone Numbers\nRead numbers clearly in grouped digits.\n\nExample:\nfour one five - eight nine two - three two four five\n\nEmail Addresses\nSpell the username letter by letter, then say \"at\", followed by the domain and \"dot com\" or the appropriate extension.\n\nExample:\nb - r - e - n - d - a - n ... at ... gmail ... dot com\n\nEMERGENCY HANDLING\nIf the caller mentions emergencies such as accidents, severe pain, bleeding, unconsciousness, or urgent medical help, immediately direct them to the hospital's emergency department or emergency services.\n\nMEDICAL LIMITATIONS\n• Do not diagnose or provide medical advice.\n• Do not discuss treatment or medical conditions.\n• Politely guide callers to speak with a doctor for medical questions.\n\nGENERAL RULES\n• Only provide information that is known and accurate.\n• Never invent details.\n• Be polite, empathetic, and helpful at all times.\n",
+    "nodes": [
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "ROLE OVERVIEW\n\nAs the voice receptionist Medi for Medilens Hospital, your primary responsibility is to assist callers with appointment services, complaint support, and general hospital information in a friendly and professional manner.\n\nYou help callers with the following services:\n\nAppointment Booking\nAssist patients in scheduling appointments with doctors at Medilens Hospital.\n\nAppointment Rescheduling\nHelp callers change the date or time of an existing appointment when needed.\n\nAppointment Cancellation\nAssist callers who wish to cancel a previously scheduled appointment.\n\nComplaint Registration & Tracking\nHelp patients register complaints related to hospital services and provide a complaint tracking ID so they can follow the status of their issue. Complaints may include issues related to medical care, appointments, staff behavior, billing, facilities, pharmacy, lab services, emergency services, or technical issues.\n\nGeneral Questions\nAnswer common questions about the hospital such as departments, services, working hours, and other general information.\n\nYour goal is to guide callers smoothly, provide clear information, ensure every interaction is helpful, polite, and efficient, and make sure patient concerns are properly recorded and addressed.\n\nINTENT RECOGNITION, CONFIRMATION & TRANSITIONS\n\nBefore taking any action, first understand the caller's intent. Callers may either be asking a question about a service or requesting that the service be performed.\n\nPrimary Intents\n\n1. Appointment Booking\n   The caller wants to schedule a new appointment with a doctor.\n\nExamples:\n• \"I want to book an appointment.\"\n• \"Can you schedule me with a cardiologist?\"\n• \"I need to see a doctor tomorrow.\"\n\n2. Appointment Rescheduling\n   The caller wants to change the date or time of an existing appointment.\n\nExamples:\n• \"I want to reschedule my appointment.\"\n• \"Can I move my appointment to another day?\"\n• \"I need to change my appointment time.\"\n\n3. Appointment Cancellation\n   The caller wants to cancel an existing appointment.\n\nExamples:\n• \"Cancel my appointment.\"\n• \"I need to cancel my booking.\"\n• \"Please cancel my visit tomorrow.\"\n\n4. Complaint Registration\n   The caller wants to report a problem or express dissatisfaction with a hospital service.\n\nExamples:\n• \"I want to file a complaint.\"\n• \"The doctor made me wait too long.\"\n• \"The staff at reception was rude.\"\n• \"My lab report is delayed.\"\n• \"I was charged incorrectly.\"\n\nWhen this intent is detected, guide the caller through the complaint registration process and collect the necessary information.\n\n5. Complaint Status / Tracking\n   The caller wants to check the status of an existing complaint.\n\nExamples:\n• \"I want to check my complaint status.\"\n• \"Can you track my complaint?\"\n• \"What is the update on my complaint?\"\n\nAsk the caller for their complaint tracking ID before checking the status.\n\n6. General Questions\n   The caller is asking about hospital information such as departments, services, visiting hours, or doctor availability.\n\nExamples:\n• \"What departments do you have?\"\n• \"What time does the hospital open?\"\n• \"Do you have a neurologist?\"\n• \"What services does the hospital provide?\"\n\nAnswer the question clearly using the available knowledge.\n\nQuestion vs Action Rule\n\nIf the caller is asking how something works, provide a clear explanation instead of immediately starting the process.\n\nExamples:\n• \"How can I schedule an appointment?\"\n• \"How do I cancel my appointment?\"\n• \"How can I submit a complaint?\"\n\nIn these situations, briefly explain the process and then ask if the caller would like help proceeding.\n\nExample response:\n\"I can help with that. I can schedule an appointment or help register a complaint for you here. Would you like me to proceed?\"\n\nIntent Confirmation Rule\n\nBefore starting any workflow (booking, rescheduling, cancellation, or complaint registration), make sure the caller clearly wants to perform the action.\n\nIf the caller only asks about the process, explain it first and ask if they would like to proceed. Only transition to the workflow after the caller confirms they want to continue.\n\nAlways ensure the caller's intent is clear before moving into booking, rescheduling, canceling an appointment, registering a complaint, or checking complaint status.\n"
+        },
+        "name": "Welcome Node",
+        "edges": [
+          {
+            "destination_node_id": "component-node-1772824287443",
+            "id": "edge-1",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Transition when the caller clearly wants to book or schedule a new appointment with a doctor.\n\nExamples:\n• \"I want to book an appointment.\"\n• \"Schedule an appointment.\"\n• \"I need to see a doctor.\"\n\nDo not transition if the caller is only asking how scheduling works.\n"
+            }
+          },
+          {
+            "destination_node_id": "component-node-1772824322922",
+            "id": "edge-2",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Transition when the caller clearly asks to cancel an existing appointment.\n\nExamples:\n• \"Cancel my appointment.\"\n• \"I want to cancel my booking.\"\n\nDo not transition if the caller is asking about the cancellation process.\n"
+            }
+          },
+          {
+            "destination_node_id": "component-node-1772824322147",
+            "id": "edge-1772824334299-bgsifcayb",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Transition when the caller wants to change the date or time of an existing appointment.\n\nExamples:\n• \"I want to reschedule my appointment.\"\n• \"Change my appointment time.\"\n• \"Move my appointment.\"\n\nDo not transition if the caller is only asking how rescheduling works.\n"
+            }
+          },
+          {
+            "destination_node_id": "component-node-1773069085690",
+            "id": "edge-1773068861900-oefoa5bku",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "transition when user want to track their complain or check the status of their complain/"
+            }
+          }
+        ],
+        "start_speaker": "agent",
+        "id": "start-node-1772823821239",
+        "type": "conversation",
+        "display_position": {
+          "x": 34.571428571428584,
+          "y": -544.1428571428571
+        }
+      },
+      {
+        "name": "End Call",
+        "id": "end-call-node-1772823821239",
+        "type": "end",
+        "display_position": {
+          "x": 1158,
+          "y": -186
+        },
+        "instruction": {
+          "type": "prompt",
+          "text": "Politely end the call"
+        }
+      },
+      {
+        "component_type": "local",
+        "component_id": "cf-component-1772824168020",
+        "else_edge": {
+          "destination_node_id": "end-call-node-1772823821239",
+          "id": "component-node-1772824287443-else-edge",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Else"
+          }
+        },
+        "name": "schedule_appointment",
+        "edges": [],
+        "id": "component-node-1772824287443",
+        "type": "component",
+        "display_position": {
+          "x": 616,
+          "y": -574
+        }
+      },
+      {
+        "component_type": "local",
+        "component_id": "cf-component-1772824195779",
+        "else_edge": {
+          "destination_node_id": "end-call-node-1772823821239",
+          "id": "component-node-1772824322147-else-edge",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Else"
+          }
+        },
+        "name": "reschedule_appointment",
+        "edges": [],
+        "id": "component-node-1772824322147",
+        "type": "component",
+        "display_position": {
+          "x": 614.8571428571429,
+          "y": -172.57142857142858
+        }
+      },
+      {
+        "component_type": "local",
+        "component_id": "cf-component-1772824217531",
+        "else_edge": {
+          "destination_node_id": "end-call-node-1772823821239",
+          "id": "component-node-1772824322922-else-edge",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Else"
+          }
+        },
+        "name": "cancel_appointment",
+        "edges": [],
+        "id": "component-node-1772824322922",
+        "type": "component",
+        "display_position": {
+          "x": 614,
+          "y": -371.7142857142857
+        }
+      },
+      {
+        "component_type": "local",
+        "component_id": "cf-component-1773068890752",
+        "else_edge": {
+          "destination_node_id": "end-call-node-1772823821239",
+          "id": "component-node-1773069085690-else-edge",
+          "transition_condition": {
+            "type": "prompt",
+            "prompt": "Else"
+          }
+        },
+        "name": "Complaint",
+        "edges": [],
+        "id": "component-node-1773069085690",
+        "type": "component",
+        "display_position": {
+          "x": 630,
+          "y": 54
+        }
+      }
+    ],
+    "components": [
+      {
+        "start_node_id": "conversation-1772824168020",
+        "nodes": [
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "**Medilens Voice Agent – Conversation Instructions**\n\n1. **Greeting + Ask Name (one sentence)**\n   Hello! Thank you for calling Medilens. This is Medi. How may I help you today? I’d be happy to help you book an appointment today. To begin, may I please have your full name?\n\n2. **Verify the spelling of the name**\n   Thank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\n3. **Ask for the phone number**\n   Alright. And what is the best phone number for you?\n\n4. **Ask for the email address**\n   Thank you. May I have your email address as well?\n\n5. **Ask for the department**\n   Which of our departments would you like to book an appointment with today?\n\n---\n\n# Confirmation Techniques\n\n**Spelling**\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\n**Email Confirmation**\nRead the email address slowly. Spell the username letter by letter, then say “at”, then the domain.\n\nExample:\n“So the email address is… b - r - e - n - d - a - n … at … gmail … dot com. Is that correct?”\n\nIf the caller asks you to repeat the email, repeat it only once.\n\n**Phone Number Confirmation**\nAlways read phone numbers in grouped digits.\n\nExample:\n“Okay, the phone number you provided is… four one five - eight nine two - three two four five. Is that correct?”\n\nKeep a short pause between groups and keep the spaces around the dash when speaking.\n\n---\n\n# Important Rule\n\nDo **NOT** ask the caller for an appointment date or time.\n\nThe appointment time will be selected automatically by the system based on doctor availability.\n\n---\n\n# Final Step\n\nAfter the following details are collected and confirmed:\n\n* Name\n* Phone Number\n* Email Address\n* Department\n\nSay:\n\n“Alright, I have everything I need. I will check the available slots”\n"
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772824444508",
+                "id": "conversation-1772824168020-edge-1772824433082-n0wa1xrs5",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when the name,phone no,email, department name  is provided"
+                }
+              },
+              {
+                "destination_node_id": "conversation-1772824691917",
+                "id": "conversation-1772824168020-edge-1772876630818-j34be8kwf",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when the information is missing"
+                }
+              }
+            ],
+            "id": "conversation-1772824168020",
+            "tool_ids": [],
+            "type": "conversation",
+            "display_position": {
+              "x": -202.28571428571428,
+              "y": -414.5714285714285
+            },
+            "tools": [],
+            "interruption_sensitivity": 1,
+            "voice_speed": 1,
+            "responsiveness": 1
+          },
+          {
+            "name": "Exit Component",
+            "id": "component-end-1772824168020",
+            "type": "end",
+            "display_position": {
+              "x": 1480,
+              "y": -208
+            },
+            "instruction": {
+              "type": "static_text",
+              "text": "Component completed"
+            }
+          },
+          {
+            "variables": [
+              {
+                "name": "name",
+                "type": "string",
+                "description": "Name of the user"
+              },
+              {
+                "name": "phone_no",
+                "description": "extract the phone no from the conversation",
+                "type": "number",
+                "choices": []
+              },
+              {
+                "name": "email",
+                "description": "extract the email from the conversation",
+                "type": "string",
+                "choices": []
+              },
+              {
+                "name": "department ",
+                "description": "extract the department name from the conversation",
+                "type": "string",
+                "choices": []
+              }
+            ],
+            "else_edge": {
+              "id": "else-edge-1772824444508",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Extract Variables",
+            "edges": [
+              {
+                "destination_node_id": "node-1772824490755",
+                "id": "edge-1772824444508",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when name,phone_no,email ,department  are extracted"
+                }
+              }
+            ],
+            "id": "node-1772824444508",
+            "type": "extract_dynamic_variables",
+            "display_position": {
+              "x": 246.57142857142856,
+              "y": -646.5714285714286
+            }
+          },
+          {
+            "tool_id": "tool-1772824488626",
+            "else_edge": {
+              "destination_node_id": "conversation-1772824721970",
+              "id": "node-1772824490755-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Doctor Availibility",
+            "edges": [],
+            "id": "node-1772824490755",
+            "type": "function",
+            "display_position": {
+              "x": 616.0000000000002,
+              "y": -445.1785714285716
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772824444508",
+                "id": "edge-1772824691917",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when the name,phone no,email, department name  is provided"
+                }
+              }
+            ],
+            "id": "conversation-1772824691917",
+            "type": "conversation",
+            "display_position": {
+              "x": 151.1428571428571,
+              "y": 79.71428571428571
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "can you please provide the information again.\nyour name, phone no ,email and department"
+            }
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1772824168020",
+                "id": "edge-1772824718250",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Describe the transition condition"
+                }
+              }
+            ],
+            "id": "conversation-1772824718250",
+            "type": "conversation",
+            "display_position": {
+              "x": 1038.5714285714287,
+              "y": 59.428571428571345
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "{{ $json.message }}"
+            }
+          },
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "The doctor is available at these times:\n\n{{ $json.consolidated_data }}\n\nAsk the patient which time they prefer."
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772878885063",
+                "id": "edge-1772824721970",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when Appointment id, slot date and slot time is extracted "
+                }
+              }
+            ],
+            "id": "conversation-1772824721970",
+            "type": "conversation",
+            "display_position": {
+              "x": 622.5714285714287,
+              "y": -171.71428571428578
+            },
+            "tools": [
+              {
+                "name": "extract_info",
+                "description": "extract the info",
+                "variables": [
+                  {
+                    "type": "string",
+                    "name": "doctor_name",
+                    "description": "extract the doctor name from the conversation"
+                  },
+                  {
+                    "type": "number",
+                    "name": "appointment_date",
+                    "description": "extract the appointment date from the conversation"
+                  },
+                  {
+                    "type": "number",
+                    "name": "appointment_time",
+                    "description": "extract the appointment time from the conversation"
+                  }
+                ],
+                "type": "extract_dynamic_variable",
+                "speak_after_execution": true
+              }
+            ]
+          },
+          {
+            "tool_id": "tool-1772878869374",
+            "else_edge": {
+              "id": "node-1772878885063-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Book Appointment",
+            "edges": [
+              {
+                "destination_node_id": "conversation-1772913398178",
+                "id": "node-1772878885063-edge-1772913333803-q0we9dtk9",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "when appointment is booked but message not sent"
+                }
+              },
+              {
+                "destination_node_id": "conversation-1772824718250",
+                "id": "node-1772878885063-edge-1772913376612-vzvwpvhky",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "when appointment is booked"
+                }
+              }
+            ],
+            "id": "node-1772878885063",
+            "type": "function",
+            "display_position": {
+              "x": 1017.8928571428571,
+              "y": -272.8928571428572
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "id": "edge-1772913398178",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Describe the transition condition"
+                }
+              }
+            ],
+            "id": "conversation-1772913398178",
+            "type": "conversation",
+            "display_position": {
+              "x": 992.8571428571429,
+              "y": -582.8571428571429
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "{\n \"status\":\"success\",\n \"message\":\"Appointment booked but email failed to send.\"\n}"
+            }
+          }
+        ],
+        "user_modified_timestamp": 1773003158832,
+        "name": "schedule_appointment",
+        "conversation_flow_component_id": "cf-component-1772824168020",
+        "tools": [
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/doctor_availibility",
+            "tool_id": "tool-1772824488626",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "doctor_availibility",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "name",
+                "phone_no",
+                "email",
+                "department",
+                "appointment_id"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "extracted name from the conversation"
+                },
+                "phone_no": {
+                  "type": "string",
+                  "description": "extracted phone no from the conversation"
+                },
+                "appointment_id": {
+                  "type": "string",
+                  "description": "extracted from conversation"
+                },
+                "department": {
+                  "type": "string",
+                  "description": "extracted department name from the conversation"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "extracted email from the conversation"
+                }
+              }
+            }
+          },
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/book_appointment",
+            "tool_id": "tool-1772878869374",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "book_appointment",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "name",
+                "phone_no",
+                "email",
+                "department",
+                "doctor_name",
+                "appointment_date",
+                "appointment_time",
+                "appointment_id",
+                "schedule_id"
+              ],
+              "properties": {
+                "phone_no": {
+                  "type": "string",
+                  "description": "extracted phono no from the conversation"
+                },
+                "appointment_time": {
+                  "type": "string",
+                  "description": "extracted appointment time from the conversation"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "extracted name from the conversation"
+                },
+                "appointment_date": {
+                  "type": "string",
+                  "description": "extracted appointment date from the conversation"
+                },
+                "appointment_id": {
+                  "type": "string",
+                  "description": "extracted from conversation"
+                },
+                "department": {
+                  "type": "string",
+                  "description": "extracted department from the conversation"
+                },
+                "doctor_name": {
+                  "type": "string",
+                  "description": "extracted doctor name from the conversation"
+                },
+                "schedule_id": {
+                  "type": "string",
+                  "description": "extracted schedule id from conversation"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "extracted email from the conversation"
+                }
+              }
+            }
+          }
+        ],
+        "begin_tag_display_position": {
+          "x": -381.42857142857144,
+          "y": 107.42857142857142
+        }
+      },
+      {
+        "name": "reschedule_appointment",
+        "start_node_id": "conversation-1772824195779",
+        "conversation_flow_component_id": "cf-component-1772824195779",
+        "nodes": [
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772970256952",
+                "id": "conversation-1772824195779-edge-1772970190327-nlzhkua9g",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when patient name and  appointment id is provided"
+                }
+              },
+              {
+                "destination_node_id": "conversation-1772970232767",
+                "id": "conversation-1772824195779-edge-1772970192399-8g36j2n84",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when info is missing."
+                }
+              }
+            ],
+            "id": "conversation-1772824195779",
+            "type": "conversation",
+            "display_position": {
+              "x": 226,
+              "y": -230
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "**Medilens Voice Agent – Reschedule Appointment Conversation Instructions**\n\n1. **Greeting + Ask Name (one sentence)**\n can help you reschedule your appointment today. To begin, may I please have your full name?\n\n2. **Verify the spelling of the name**\n   Thank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\n3. **Ask for the Appointment ID**\n   Alright. Could you please provide your appointment ID so I can locate your appointment?\n\n# Confirmation Techniques\n\n**Spelling**\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\n# Final Step\n\nAfter the following details are collected and confirmed:\n\n* Patient Name\n* Appointment ID\n\nSay:\n\n“Alright, I have everything I need. I will now check your appointment \n\n"
+            }
+          },
+          {
+            "name": "Exit Component",
+            "id": "component-end-1772824195779",
+            "type": "end",
+            "display_position": {
+              "x": 1814,
+              "y": 18
+            },
+            "instruction": {
+              "type": "static_text",
+              "text": "Component completed"
+            }
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772970256952",
+                "id": "edge-1772970232767",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when patient name and  appointment id is provided"
+                }
+              }
+            ],
+            "id": "conversation-1772970232767",
+            "type": "conversation",
+            "display_position": {
+              "x": 628,
+              "y": 230
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "can you please provide the information again.\n may I please have your full name?\n\n2. **Verify the spelling of the name**\n   Thank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\n3. **Ask for the Appointment ID**\n   Alright. Could you please provide your appointment ID so I can locate your appointment?\n\n---\n\n# Confirmation Techniques\n\n**Spelling**\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\n# Final Step\n\nAfter the following details are collected and confirmed:\n\n* Patient Name\n* Appointment ID\n\nSay:\n\n“Alright, I have everything I need. I will now check your appointment"
+            }
+          },
+          {
+            "variables": [
+              {
+                "name": "patient name",
+                "description": "extract the name of the patient from the appointment ",
+                "type": "string",
+                "choices": []
+              },
+              {
+                "name": "appointment_id",
+                "description": "extract the appointment id from the conversation",
+                "type": "number",
+                "choices": []
+              }
+            ],
+            "else_edge": {
+              "id": "else-edge-1772970256952",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Extract Variables",
+            "edges": [
+              {
+                "destination_node_id": "node-1772970411647",
+                "id": "edge-1772970256952",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when patient name and  appointment id is extracted"
+                }
+              }
+            ],
+            "id": "node-1772970256952",
+            "type": "extract_dynamic_variables",
+            "display_position": {
+              "x": 598,
+              "y": -478
+            }
+          },
+          {
+            "tool_id": "tool-1772970406039",
+            "else_edge": {
+              "destination_node_id": "conversation-1772970427855",
+              "id": "node-1772970411647-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Appointment Check",
+            "edges": [],
+            "id": "node-1772970411647",
+            "type": "function",
+            "display_position": {
+              "x": 1052,
+              "y": -550
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772971049615",
+                "id": "edge-1772970427855",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "user said yes"
+                }
+              },
+              {
+                "destination_node_id": "conversation-1772986943427",
+                "id": "conversation-1772970427855-edge-1772970464367-tqmocxqqj",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "user said no"
+                }
+              }
+            ],
+            "id": "conversation-1772970427855",
+            "type": "conversation",
+            "display_position": {
+              "x": 1060,
+              "y": -356
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "I have found your appointment. \n\n{{ $json.message }}\n\n Do you want me to proceed with reschedule your Appointment?"
+            }
+          },
+          {
+            "tool_id": "tool-1772971044822",
+            "else_edge": {
+              "destination_node_id": "conversation-1772986886547",
+              "id": "node-1772971049615-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Check Slot",
+            "edges": [],
+            "id": "node-1772971049615",
+            "type": "function",
+            "display_position": {
+              "x": 1430,
+              "y": -476
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1772824195779",
+                "id": "edge-1772986886547",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Describe the transition condition"
+                }
+              }
+            ],
+            "id": "conversation-1772986886547",
+            "type": "conversation",
+            "display_position": {
+              "x": 1434,
+              "y": -282
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "congrats!\n\n{{ $json.message }}"
+            }
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1772824195779",
+                "id": "edge-1772986943427",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "else"
+                }
+              }
+            ],
+            "id": "conversation-1772986943427",
+            "type": "conversation",
+            "display_position": {
+              "x": 1424,
+              "y": 58
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "is there anything else i can help you with?"
+            }
+          }
+        ],
+        "user_modified_timestamp": 1772996048339,
+        "tools": [
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/reschedule_check",
+            "tool_id": "tool-1772970406039",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "appointment_check",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "patient_name",
+                "appointment_id"
+              ],
+              "properties": {
+                "patient_name": {
+                  "type": "string",
+                  "description": "extracted patient name from the conversation"
+                },
+                "appointment_id": {
+                  "type": "string",
+                  "description": "extracted appointment id from the conversation"
+                }
+              }
+            }
+          },
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/confirm_reschedule",
+            "tool_id": "tool-1772971044822",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "check_slot",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "appointment_id",
+                "appointment_date",
+                "slot_end_time",
+                "slot_start_time"
+              ],
+              "properties": {
+                "appointment_id": {
+                  "type": "string",
+                  "description": "extracted appointment id from the conversation"
+                },
+                "appointment_date": {
+                  "type": "string",
+                  "description": "extracted appointment date from the conversation"
+                },
+                "slot_start_time": {
+                  "type": "string",
+                  "description": "extracted slot start time from the conversation"
+                },
+                "slot_end_time": {
+                  "type": "string",
+                  "description": "extracted slot start time from the conversation"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "cancel_appointment",
+        "start_node_id": "conversation-1772824217531",
+        "conversation_flow_component_id": "cf-component-1772824217531",
+        "nodes": [
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "**Medilens Voice Agent – Cancel Appointment Conversation Instructions**\n\n1. **Greeting + Ask Name (one sentence)** I can help you cancel your appointment today. To begin, may I please have your full name?\n\n2. **Verify the spelling of the name**\n   Thank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\n3. **Ask for the Appointment ID**\n   Alright. Could you please provide your appointment ID so I can locate your appointment?\n\n---\n\n# Confirmation Techniques\n\n**Spelling**\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\n# Final Step\n\nAfter the following details are collected and confirmed:\n\n* Patient Name\n* Appointment ID\n\nSay:\n\n“Alright, I have everything I need. I will now check your appointment and proceed with the cancellation.”\n"
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772965301663",
+                "id": "conversation-1772824217531-edge-1772965297159-3czaqztq4",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when patient name and  appointment id is provided"
+                }
+              },
+              {
+                "destination_node_id": "conversation-1772965388982",
+                "id": "conversation-1772824217531-edge-1772965299286-jndyszj7i",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when info is missing."
+                }
+              }
+            ],
+            "id": "conversation-1772824217531",
+            "type": "conversation",
+            "display_position": {
+              "x": 216,
+              "y": -306
+            },
+            "interruption_sensitivity": 1,
+            "voice_speed": 1,
+            "responsiveness": 1
+          },
+          {
+            "name": "Exit Component",
+            "id": "component-end-1772824217531",
+            "type": "end",
+            "display_position": {
+              "x": 1795.4285714285716,
+              "y": -133.14285714285717
+            },
+            "instruction": {
+              "type": "static_text",
+              "text": "Component completed"
+            }
+          },
+          {
+            "variables": [
+              {
+                "name": "patient name",
+                "description": "extract the patient name from the conversation",
+                "type": "string",
+                "choices": []
+              },
+              {
+                "name": "appointment id",
+                "description": "extract the appointment id from the conversation",
+                "type": "number",
+                "choices": []
+              }
+            ],
+            "else_edge": {
+              "id": "else-edge-1772965301663",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Extract Variables",
+            "edges": [
+              {
+                "destination_node_id": "node-1772965383966",
+                "id": "edge-1772965301663",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when patient name and  appointment id is provided ."
+                }
+              }
+            ],
+            "id": "node-1772965301663",
+            "type": "extract_dynamic_variables",
+            "display_position": {
+              "x": 590,
+              "y": -634
+            }
+          },
+          {
+            "tool_id": "tool-1772965375310",
+            "else_edge": {
+              "destination_node_id": "conversation-1772965409206",
+              "id": "node-1772965383966-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Cancel-appointment-",
+            "edges": [],
+            "id": "node-1772965383966",
+            "type": "function",
+            "display_position": {
+              "x": 978,
+              "y": -542
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "can you please provide the information again.\n may I please have your full name?\n\n2. **Verify the spelling of the name**\n   Thank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\n3. **Ask for the Appointment ID**\n   Alright. Could you please provide your appointment ID so I can locate your appointment?\n\n---\n\n# Confirmation Techniques\n\n**Spelling**\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\n# Final Step\n\nAfter the following details are collected and confirmed:\n\n* Patient Name\n* Appointment ID\n\nSay:\n\n“Alright, I have everything I need. I will now check your appointment and proceed with the cancellation.”"
+            },
+            "model_choice": {
+              "type": "cascading",
+              "model": "gpt-4.1"
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772965301663",
+                "id": "edge-1772965388982",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when patient name and  appointment id is provided ."
+                }
+              }
+            ],
+            "id": "conversation-1772965388982",
+            "type": "conversation",
+            "display_position": {
+              "x": 624,
+              "y": -16
+            },
+            "interruption_sensitivity": 1,
+            "voice_speed": 1,
+            "responsiveness": 1
+          },
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "I have found your appointment. \n\n{{ $json.appointment_info }}\n\n Do you want me to proceed with cancellation?"
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1772965444975",
+                "id": "edge-1772965409206",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "user said yes to cancel appointment."
+                }
+              },
+              {
+                "destination_node_id": "conversation-1772965451374",
+                "id": "conversation-1772965409206-edge-1772965455303-894754egi",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "user said no to cancel appointment"
+                }
+              }
+            ],
+            "id": "conversation-1772965409206",
+            "type": "conversation",
+            "display_position": {
+              "x": 998,
+              "y": -332
+            },
+            "interruption_sensitivity": 1,
+            "voice_speed": 1,
+            "responsiveness": 1
+          },
+          {
+            "tool_id": "tool-1772965442525",
+            "else_edge": {
+              "destination_node_id": "conversation-1772965470558",
+              "id": "node-1772965444975-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Confirm Cancellation",
+            "edges": [],
+            "id": "node-1772965444975",
+            "type": "function",
+            "display_position": {
+              "x": 1346.2857142857142,
+              "y": -584.5714285714286
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "Okay! Thankyou for choosing medilens. have a good day."
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1772824217531",
+                "id": "edge-1772965451374",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Describe the transition condition"
+                }
+              }
+            ],
+            "id": "conversation-1772965451374",
+            "type": "conversation",
+            "display_position": {
+              "x": 1352,
+              "y": 92
+            },
+            "interruption_sensitivity": 1,
+            "voice_speed": 1,
+            "responsiveness": 1
+          },
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "{{ $json.message }}\n\nIs there anything else i can help you with?"
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1772824217531",
+                "id": "edge-1772965470558",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "user said yes "
+                }
+              },
+              {
+                "destination_node_id": "component-end-1772824217531",
+                "id": "conversation-1772965470558-edge-1772965498903-t2nmpfj7g",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "user said no "
+                }
+              }
+            ],
+            "id": "conversation-1772965470558",
+            "type": "conversation",
+            "display_position": {
+              "x": 1376,
+              "y": -354
+            },
+            "interruption_sensitivity": 1,
+            "voice_speed": 1,
+            "responsiveness": 1
+          }
+        ],
+        "user_modified_timestamp": 1772984847918,
+        "tools": [
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/cancel_status",
+            "tool_id": "tool-1772965375310",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "cancel-appointment-",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "patient_name",
+                "appointment_id"
+              ],
+              "properties": {
+                "patient_name": {
+                  "type": "string",
+                  "description": "extract the patient name from the conversation"
+                },
+                "appointment_id": {
+                  "type": "string",
+                  "description": "extract the appointment id  pati from the conversation"
+                }
+              }
+            }
+          },
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/confirm_cancellation",
+            "tool_id": "tool-1772965442525",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "confirm_cancellation",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "patient_name",
+                "appointment_id"
+              ],
+              "properties": {
+                "patient_name": {
+                  "type": "string",
+                  "description": "extract the patient name from the conversation"
+                },
+                "appointment_id": {
+                  "type": "string",
+                  "description": "extract the appointment id from the conversation"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "start_node_id": "conversation-1772824234899",
+        "nodes": [
+          {
+            "instruction": {
+              "type": "prompt",
+              "text": "You are an assistant that answers user questions using the FAQ knowledge base.\n\nKnowledge Base ID: <knowledge_base_YOUR_KNOWLEDGE_BASE_ID>\n\nInstructions:\n- Search the knowledge base with the provided ID.\n- Provide a concise, accurate answer.\n- If the answer is not found, respond politely that you don’t have that information."
+            },
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1772824234899",
+                "id": "conversation-1772824234899-edge-1773048752113-lsu92u5ef",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "else"
+                }
+              }
+            ],
+            "id": "conversation-1772824234899",
+            "type": "conversation",
+            "display_position": {
+              "x": 236.8571428571429,
+              "y": -638.2857142857143
+            },
+            "voice_speed": 1
+          },
+          {
+            "name": "Exit Component",
+            "id": "component-end-1772824234899",
+            "type": "end",
+            "display_position": {
+              "x": 648,
+              "y": -228
+            },
+            "instruction": {
+              "type": "static_text",
+              "text": "Component completed"
+            }
+          }
+        ],
+        "user_modified_timestamp": 1773007834888,
+        "name": "faqs",
+        "conversation_flow_component_id": "cf-component-1772824234899",
+        "tools": [],
+        "begin_tag_display_position": {
+          "x": 81.42857142857144,
+          "y": -260
+        }
+      },
+      {
+        "name": "Complaint",
+        "start_node_id": "conversation-1773068890752",
+        "conversation_flow_component_id": "cf-component-1773068890752",
+        "nodes": [
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1773069544816",
+                "id": "conversation-1773068890752-edge-1773069502880-wj4j9vm5q",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Transition when name and complaint id is provided"
+                }
+              },
+              {
+                "destination_node_id": "conversation-1773069547759",
+                "id": "conversation-1773068890752-edge-1773069505696-4467yrwqi",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "transition when there is missing info"
+                }
+              }
+            ],
+            "id": "conversation-1773068890752",
+            "type": "conversation",
+            "display_position": {
+              "x": 172,
+              "y": -468
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "Medilens Voice Agent – Register Complaint Conversation Instructions\n\nGreeting + Ask Name (one sentence)\nI can help you register your complaint today. To begin, may I please have your full name?\n\nVerify the spelling of the name\nThank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\nAsk for the Complaint ID\nAlright. Could you please provide your complaint ID so I can locate your complaint?\n\nConfirmation Techniques\n\nSpelling\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\nFinal Step\n\nAfter the following details are collected and confirmed:\n\nYour Name\n\nComplaint ID\n\nSay:\n“Alright, I have everything I need. I will now check your complaint and proceed with registering it.”"
+            }
+          },
+          {
+            "name": "Exit Component",
+            "id": "component-end-1773068890752",
+            "type": "end",
+            "display_position": {
+              "x": 1838,
+              "y": 140
+            },
+            "instruction": {
+              "type": "static_text",
+              "text": "Component completed"
+            }
+          },
+          {
+            "variables": [
+              {
+                "name": "name",
+                "type": "string",
+                "description": "Name of the user"
+              },
+              {
+                "name": "complaint id",
+                "description": "extract the complaint id from the conversation.",
+                "type": "string",
+                "choices": []
+              }
+            ],
+            "else_edge": {
+              "id": "else-edge-1773069544816",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Extract Variables",
+            "edges": [
+              {
+                "destination_node_id": "node-1773071803166",
+                "id": "edge-1773069544816",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Transition when name and complaint id are extracted"
+                }
+              }
+            ],
+            "id": "node-1773069544816",
+            "type": "extract_dynamic_variables",
+            "display_position": {
+              "x": 710,
+              "y": -460
+            }
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "node-1773069544816",
+                "id": "edge-1773069547759",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Transition when name and complaint id is provided"
+                }
+              }
+            ],
+            "id": "conversation-1773069547759",
+            "type": "conversation",
+            "display_position": {
+              "x": 612,
+              "y": 96
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "Sorry!  Can I please have your full name?\n\nVerify the spelling of the name\nThank you. Just to confirm, could you spell your name for me please?\n\nThen confirm by spelling it back:\n“So your name is spelled: [spell the name letter by letter]. Did I get that right?”\n\nAsk for the Complaint ID\nAlright. Could you please provide your complaint ID so I can locate your complaint?\n\nConfirmation Techniques\n\nSpelling\nWhen confirming spelling ask:\n“Could you spell that for me, please?”\n\nFinal Step\n\nAfter the following details are collected and confirmed:\n\nYour Name\n\nComplaint ID\n\nSay:\n“Alright, I have everything I need. I will now check your complaint and proceed with registering it.”"
+            }
+          },
+          {
+            "tool_id": "tool-1773071800813",
+            "else_edge": {
+              "destination_node_id": "conversation-1773071863837",
+              "id": "node-1773071803166-else-edge",
+              "transition_condition": {
+                "type": "prompt",
+                "prompt": "Else"
+              }
+            },
+            "name": "Complaint Check",
+            "edges": [],
+            "id": "node-1773071803166",
+            "type": "function",
+            "display_position": {
+              "x": 1114,
+              "y": -202
+            },
+            "tool_type": "local",
+            "speak_during_execution": false,
+            "wait_for_result": true
+          },
+          {
+            "name": "Conversation",
+            "edges": [
+              {
+                "destination_node_id": "component-end-1773068890752",
+                "id": "edge-1773071863837",
+                "transition_condition": {
+                  "type": "prompt",
+                  "prompt": "Describe the transition condition"
+                }
+              }
+            ],
+            "id": "conversation-1773071863837",
+            "type": "conversation",
+            "display_position": {
+              "x": 1464,
+              "y": -88
+            },
+            "instruction": {
+              "type": "prompt",
+              "text": "{{ $json.message }}\n\nIs there anything else you need?"
+            }
+          }
+        ],
+        "user_modified_timestamp": 1773071855638,
+        "tools": [
+          {
+            "headers": {},
+            "parameter_type": "form",
+            "method": "POST",
+            "query_params": {},
+            "description": "",
+            "type": "custom",
+            "url": "https://YOUR_N8N_INSTANCE_URL/webhook/complaint_status",
+            "tool_id": "tool-1773071800813",
+            "args_at_root": false,
+            "timeout_ms": 120000,
+            "speak_after_execution": true,
+            "name": "complaint_check",
+            "response_variables": {},
+            "speak_during_execution": false,
+            "parameters": {
+              "type": "object",
+              "required": [
+                "name",
+                "complaint_id"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "extracted name from the conversation"
+                },
+                "complaint_id": {
+                  "type": "string",
+                  "description": "extracted complaint id from the conversation"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "start_node_id": "start-node-1772823821239",
+    "start_speaker": "agent",
+    "model_choice": {
+      "type": "cascading",
+      "model": "gpt-4.1"
+    },
+    "tool_call_strict_mode": true,
+    "knowledge_base_ids": [],
+    "kb_config": {
+      "top_k": 3,
+      "filter_score": 0.6
+    },
+    "begin_tag_display_position": {
+      "x": -110,
+      "y": -231
+    },
+    "is_published": false,
+    "is_transfer_cf": false
+  }
+}
