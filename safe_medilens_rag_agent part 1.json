@@ -1,0 +1,152 @@
+{
+  "name": "RAG ingestion production part 1",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "mimeType='application/pdf' and '1gcweoI1j0oI5SE7_FYswTE1V_1B5_KDl' in parents",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1gcweoI1j0oI5SE7_FYswTE1V_1B5_KDl",
+            "mode": "list",
+            "cachedResultName": "medilens",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1gcweoI1j0oI5SE7_FYswTE1V_1B5_KDl"
+          }
+        },
+        "options": {}
+      },
+      "id": "10386dec-cfde-49dc-a33b-4cc269838bfd",
+      "name": "Search PDFs in Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -688,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "14b59547-c232-400a-9c33-e64b4acfa0a4",
+      "name": "Process PDFs in Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -416,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {}
+      },
+      "id": "857c1841-52dd-49ee-a702-0f189a1db070",
+      "name": "Download PDF File",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "id": "6d376d3b-8b29-4a32-bb59-958d6bfb5202",
+      "name": "Split Text into Chunks",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        368,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "id": "dc7c3287-9468-4dd9-874c-f456c5645605",
+      "name": "Load Document Chunks",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "id": "7f3513c3-b95d-40f3-8281-2b0663a26509",
+      "name": "Gemini Embeddings (Ingestion)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        208
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        -16
+      ],
+      "id": "15b6bb38-6a6a-42b9-b3f4-8e14ae35415f",
+      "name": "When clicking \u2018Execute workflow\u2019"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-rag",
+          "mode": "list",
+          "cachedResultName": "n8n-rag"
+        },
+        "options": {
+          "clearNamespace": false,
+          "pineconeNamespace": "medilens"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        -80
+      ],
+      "id": "659506ce-80ba-4150-8047-ccff71b0e65c",
+      "name": "Pinecone Vector Store"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "ygWGLpX1HzkBFJrI",
+  "tags": []
+}
