@@ -1,0 +1,3719 @@
+{
+  "name": "Voice Appointment Booking",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.headers['x-request-count'] || 1}}",
+              "value2": 20
+            }
+          ]
+        }
+      },
+      "id": "f8fdfb6e-3b44-4ae3-8243-0b2340a17d1d",
+      "name": "Rate Limit Protection1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -2336,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "doctor_availibility",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "32ff2685-f45b-49d3-b983-d80730b5e2de",
+      "name": "Voice Agent – Check Doctor Availability",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2896,
+        672
+      ],
+      "webhookId": "voice-booking-webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9225ef9a-fa49-451c-873e-2bd1dbe39236",
+              "name": "patient_name",
+              "value": "={{ $json.body.call.collected_dynamic_variables.name }}",
+              "type": "string"
+            },
+            {
+              "id": "82b86052-3f87-48b1-8722-031e0414815f",
+              "name": "phone no",
+              "value": "={{ $json.body.call.collected_dynamic_variables.phone_no }}",
+              "type": "string"
+            },
+            {
+              "id": "64fa52e2-6925-4a95-a5b9-f7165b1461b5",
+              "name": "email",
+              "value": "={{ $json.body.call.collected_dynamic_variables.email }}",
+              "type": "string"
+            },
+            {
+              "id": "1bd09890-2688-4fb8-88cc-0dee81616859",
+              "name": "department",
+              "value": "={{ $json.body.args.department }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2080,
+        784
+      ],
+      "id": "4b3df4c9-c99c-4cb7-89fd-a49e96f8cd02",
+      "name": "Extract Patient Details"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \nschedule_id,\ndoctor_name,\nslot_date,\nslot_start_time,\nslot_end_time\nFROM doctor_schedule\nWHERE department ILIKE '%' || $1 || '%'\nAND COALESCE(status,'Available') = 'Available'\nAND slot_date >= CURRENT_DATE\nORDER BY schedule_id,doctor_name, slot_date, slot_start_time\nLIMIT 20;",
+        "options": {
+          "queryReplacement": "={{ $json.department }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1856,
+        784
+      ],
+      "id": "85c45863-c50d-49f3-a590-18c8923f15a7",
+      "name": "Query Available Doctor Slots",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "46f77023-d046-48e6-8478-6761aadbe00c",
+              "leftValue": "={{$items().length > 0}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1632,
+        784
+      ],
+      "id": "3d8e73c2-c4fe-4933-9c19-173f77f5efb6",
+      "name": "Check If Slots Exist"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst doctorData = {};\n\nfor (const item of items) {\n  const doctorName = item.json.doctor_name;\n  const slotDate = item.json.slot_date;\n  const key = `${doctorName}-${slotDate}`;\n\n  if (!doctorData[key]) {\n    doctorData[key] = {\n      doctor_name: doctorName,\n      slot_date: slotDate,\n      slots: [],\n    };\n  }\n\n  doctorData[key].slots.push({\n    schedule_id: item.json.schedule_id,\n    start_time: item.json.slot_start_time,\n    end_time: item.json.slot_end_time,\n  });\n}\n\nreturn [\n  {\n    json: {\n      consolidated_data: Object.values(doctorData),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        880
+      ],
+      "id": "0efc69a5-1efb-4c8f-b897-da7808216b7a",
+      "name": "Group Slots By Doctor"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.consolidated_data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1248,
+        880
+      ],
+      "id": "8f109b32-a267-4201-800d-0b80a8cf5acf",
+      "name": "Return Available Slots"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n \"status\":\"failed\",\n \"message\":\"No doctors available in this department.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1456,
+        688
+      ],
+      "id": "9fd20bcc-4882-4444-aa5c-a542fba7e03b",
+      "name": "Return No Slots"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "429 Too Many Requests",
+        "options": {}
+      },
+      "id": "c269a47f-d4f5-40d6-9b10-0eb26b3d15d2",
+      "name": "429 Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -2096,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n \"status\":\"success\",\n \"message\":\"Appointment booked but email failed to send.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -16,
+        1696
+      ],
+      "id": "df40c25c-c6db-4a8f-a51d-8fa9bdf18488",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "error_message",
+              "value": "={{ $json.error.message }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "error_type",
+              "value": "Database Error",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "db819383-db8b-4139-a3b8-a6a78343df40",
+      "name": "Handle Database Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        1360
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error_code\": \"DATABASE_ERROR\",\n  \"error\": \"Internal server error occurred while processing your complaint.\",\n  \"message\": \"Please try again later or contact support if the issue persists.\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "b9fb18a8-55b1-4063-a8ed-6aea0394dfae",
+      "name": "Return 500 Server Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "book_appointment",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2896,
+        1424
+      ],
+      "id": "a77a5a05-f4dc-47e7-9199-bb6e8c32d3d5",
+      "name": "Voice Agent – Book Appointment",
+      "webhookId": "c374a03b-e0d5-49fe-a068-af10e50f65ca"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6e35623b-85d0-4067-8064-bc060d39d549",
+              "name": "body.args.name",
+              "value": "={{ $json.body.args.name }}",
+              "type": "string"
+            },
+            {
+              "id": "1d192439-badd-4a32-bf3b-598839bfa772",
+              "name": "body.args.phone_no",
+              "value": "={{ $json.body.args.phone_no }}",
+              "type": "string"
+            },
+            {
+              "id": "634b8951-8a78-498e-8b11-bf07d766abb5",
+              "name": "body.args.appointment_time",
+              "value": "={{ $json.body.args.appointment_time }}",
+              "type": "string"
+            },
+            {
+              "id": "4b910dd4-b0c7-40fd-9f6f-def9388ff183",
+              "name": "body.args.appointment_date",
+              "value": "={{ $json.body.args.appointment_date }}",
+              "type": "string"
+            },
+            {
+              "id": "1776f92d-08fa-4f5a-9436-70f69cc1b85f",
+              "name": "body.args.email",
+              "value": "={{ $json.body.args.email }}",
+              "type": "string"
+            },
+            {
+              "id": "ff428d10-31a5-4f2a-b6b0-68e1d33a3a55",
+              "name": "body.args.doctor_name",
+              "value": "={{ $json.body.args.doctor_name }}",
+              "type": "string"
+            },
+            {
+              "id": "55a2439f-5e79-4e16-80cd-fd360a64af72",
+              "name": "body.args.department",
+              "value": "={{ $json.body.args.department }}",
+              "type": "string"
+            },
+            {
+              "id": "e152c87d-9207-4abd-a567-d6c068eaac7b",
+              "name": "body.args.schedule_id",
+              "value": "={{ $json.body.args.schedule_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2432,
+        1408
+      ],
+      "id": "4feca8e4-ff27-4c59-bef8-063d2de1a3f7",
+      "name": "Extract Booking Request"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE doctor_schedule\nSET status = 'Booked'\nWHERE schedule_id = $1\nRETURNING schedule_id;",
+        "options": {
+          "queryReplacement": "={{ $json.data.schedule_id }} , {{ $json.data.appointment_date }} , {{ $json.data.appointment_time }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1744,
+        1248
+      ],
+      "id": "725ff224-44a9-49e1-9a0a-86828994021f",
+      "name": "Reserve Doctor Slot",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "appointments",
+          "mode": "list",
+          "cachedResultName": "appointments"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "schedule_id",
+              "value": "={{ $json.data.schedule_id }}"
+            },
+            {
+              "column": "patient_name",
+              "value": "={{ $json.data.name }}"
+            },
+            {
+              "column": "email",
+              "value": "={{ $json.data.email }}"
+            },
+            {
+              "column": "phone",
+              "value": "={{ $json.data.phone_no }}"
+            },
+            {
+              "column": "doctor_name",
+              "value": "={{ $json.data.doctor_name }}"
+            },
+            {
+              "column": "department",
+              "value": "={{ $json.data.department }}"
+            },
+            {
+              "column": "appointment_date",
+              "value": "={{ $json.data.appointment_date }}"
+            },
+            {
+              "column": "appointment_time",
+              "value": "={{ $json.data.appointment_time }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9643332e-8306-4166-b0b3-2e288b325e12",
+      "name": "Insert Appointment Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -1152,
+        1408
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "YOUR_CALENDAR_EMAIL@gmail.com",
+          "mode": "list",
+          "cachedResultName": "YOUR_CALENDAR_EMAIL@gmail.com"
+        },
+        "start": "={{ $json.appointment_date.split('T')[0] + 'T' + $json.appointment_time }}",
+        "end": "={{ new Date(new Date($json.appointment_date.split('T')[0] + 'T' + $json.appointment_time).getTime() + 30*60*1000).toISOString() }}",
+        "useDefaultReminders": false,
+        "additionalFields": {
+          "attendees": [
+            "={{ $json.email }}"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -432,
+        1872
+      ],
+      "id": "aefa1d48-59d3-499c-9b75-c85dbe9ab7bf",
+      "name": "Create Google Calendar Event",
+      "retryOnFail": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "YOUR_GCALENDAR_CREDENTIAL_ID",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Appointment Confirmation",
+        "emailType": "text",
+        "message": "={{ $json.patient_name }}  Your Appointment id is {{ $json.schedule_id }} ,  Your appointment has been successfully scheduled.  Doctor: {{ $json.doctor_name }}         Department: {{ $json.department }}  Date: {{ $json.appointment_date }} Time: {{ $json.appointment_time }}  Please arrive 10 minutes before your appointment time.  Thank you for choosing Medilens Clinic.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -448,
+        1712
+      ],
+      "id": "92f5dd3d-7158-41c1-9d70-1d7e6a7dffa2",
+      "name": "Send Confirmation Email",
+      "webhookId": "08fe9715-4014-4798-a5b9-a207ab4286e6",
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\nconst message = `${data.patient_name},\n\nYour Appointment ID is ${data.schedule_id}.\n\nYour appointment has been successfully scheduled.\n\nDoctor: ${data.doctor_name}\nDepartment: ${data.department}\n\nDate: ${data.appointment_date}\nTime: ${data.appointment_time}\n\nPlease arrive 10 minutes before your appointment time.\n\nThank you for choosing Medilens Clinic.`;\n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        1536
+      ],
+      "id": "a4e979a4-0750-4fc7-947e-702175777170",
+      "name": "Generate Confirmation Message"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "713c8c96-ea7b-4e58-821c-a16ce3178366",
+      "name": "Return Booking Confirmation",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        1552
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eaf1914a-79b3-4b02-a584-bca64292ea9f",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -944,
+        1408
+      ],
+      "id": "654fce41-d916-42be-a59b-979d717e482a",
+      "name": "DB Insert Failed?"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "appointments",
+          "mode": "list",
+          "cachedResultName": "appointments"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "schedule_id",
+              "value": "={{ $json.schedule_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -768,
+        1600
+      ],
+      "id": "d37fff67-10b5-4a81-b623-fa84323112a6",
+      "name": "Select Appointment",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eca9c52b-9acd-437e-82b8-50addb601060",
+              "leftValue": "={{$json.error}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        1712
+      ],
+      "id": "5a1e011d-3ff8-4b91-9160-05c938b27bb5",
+      "name": "DB Insert Failed?1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8d00f701-7455-4c53-961a-e7e352682b1f",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2640,
+        672
+      ],
+      "id": "a7cd9c71-7442-4075-8fba-431b230844cf",
+      "name": "Check Retell"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "783ac9df-516a-4574-bb73-fd35c765e392",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2672,
+        1424
+      ],
+      "id": "5a9f6765-d719-4262-8440-4b501d35f766",
+      "name": "Check Retell1"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "voice_logs",
+          "mode": "list",
+          "cachedResultName": "voice_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "call_id": "={{ $json.body.call.call_id }}",
+            "call_status": "={{ $json.body.call.call_status }}",
+            "agent_name": "={{ $json.body.call.agent_id }}",
+            "start_timestamp": "={{ $json.body.call.start_timestamp }}",
+            "transcript": "={{ $json.body.call.transcript }}",
+            "created_at": "={{ $now }}",
+            "updated_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "call_id",
+              "displayName": "call_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "call_status",
+              "displayName": "call_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "agent_name",
+              "displayName": "agent_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_timestamp",
+              "displayName": "start_timestamp",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript",
+              "displayName": "transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2064,
+        656
+      ],
+      "id": "58d58d27-24b0-4ac8-b9b8-94e336751422",
+      "name": "Update voice logs1",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fca19cc6-f155-4079-b161-8eda0bd824ef",
+              "name": "body.call.call_id",
+              "value": "={{ $json.body.call.call_id }}",
+              "type": "string"
+            },
+            {
+              "id": "889c313d-9b7a-4193-a6b9-22d312f6c3c1",
+              "name": "body.call.agent_id",
+              "value": "={{ $json.body.call.agent_id }}",
+              "type": "string"
+            },
+            {
+              "id": "d5c07aa1-032a-4a2a-8745-16b1a72a5f33",
+              "name": "body.call.start_timestamp",
+              "value": "={{ $json.body.call.start_timestamp }}",
+              "type": "number"
+            },
+            {
+              "id": "b79ca5af-c342-4387-93e8-caf899ba12a1",
+              "name": "body.call.transcript",
+              "value": "={{ $json.body.call.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "1c6a0e9b-5f9f-432a-a694-db47acd03ec7",
+              "name": "body.call.call_status",
+              "value": "={{ $json.body.call.call_status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2336,
+        656
+      ],
+      "id": "536af655-a22b-4e1f-ad21-c88a45ace213",
+      "name": "Extract Log Data1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Error ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2336,
+        960
+      ],
+      "id": "a547ec4c-19ba-49ae-a120-593755eb4dd0",
+      "name": "Return Api Error"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Error",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2448,
+        1616
+      ],
+      "id": "4468119f-9fc8-4dbd-96be-58fdb0b91205",
+      "name": "Return Api Error1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json.body.args;\n\nconst errors = [];\n\nif (!data.email || !data.email.includes(\"@\")) {\n  errors.push(\"Invalid email address\");\n}\n\nif (!data.phone_no || data.phone_no.length < 10) {\n  errors.push(\"Invalid phone number\");\n}\n\nif (!data.schedule_id) {\n  errors.push(\"Missing schedule ID\");\n}\n\nif (errors.length > 0) {\n  return [\n    {\n      json: {\n        valid: false,\n        errors: errors\n      }\n    }\n  ];\n}\n\nreturn [\n  {\n    json: {\n      valid: true,\n      data: data\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2224,
+        1408
+      ],
+      "id": "d1e23c7f-58a6-4c3b-b72d-5e79ebbd7584",
+      "name": "Validate Booking Input"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n \"success\": false,\n \"message\": \"Invalid booking request\",\n \"errors\": {{$json.errors}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1728,
+        1616
+      ],
+      "id": "287ecb8e-6a4b-48ec-a599-b18cbfa80905",
+      "name": "Error Response Node"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "06603301-eb71-40be-8482-8d2e56cf359a",
+              "leftValue": "={{$json.valid}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2032,
+        1408
+      ],
+      "id": "268e0d15-bbb3-4e73-8392-aefc47e41365",
+      "name": "Validation True"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2b144555-cf57-45d5-b060-a901c5e200b1",
+              "leftValue": "={{$items().length > 0}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1504,
+        1248
+      ],
+      "id": "a09e115c-3acd-42c2-bed4-71150362b9d2",
+      "name": "Slot Or No Slot"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "{\n \"success\": false,\n \"message\": \"Sorry, this slot was just booked by another patient. Please choose another time.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1232,
+        1264
+      ],
+      "id": "d2fcf40b-2539-43d9-9ea0-ede507ef6747",
+      "name": "Return Slot Error"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cancel_status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        704
+      ],
+      "id": "d83369c5-be7b-487a-8257-2cadf19c3bd2",
+      "name": "Voice Agent – Check Appointment",
+      "webhookId": "2ba67d19-8946-40a9-a6de-ba553bbc0f64"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * \nFROM appointments\nWHERE schedule_id = $1\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.args.appointment_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1088,
+        688
+      ],
+      "id": "33751dae-1ce4-413c-b13e-1c5854fafed9",
+      "name": "Fetch Appointment Details",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const appt = $json;\n\nconst date = new Date(appt.appointment_date).toLocaleDateString('en-US', {\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\nconst time = appt.appointment_time.slice(0,5);\n\nreturn {\n  appointment_info: `\nPatient Name: ${appt.patient_name}\nAppointment ID: ${appt.schedule_id}\nDoctor: ${appt.doctor_name}\nDepartment: ${appt.department}\nDate: ${date}\nTime: ${time}\nPhone: ${appt.phone}\nEmail: ${appt.email}\n`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        688
+      ],
+      "id": "62d83065-360a-4ebe-a181-a709c848b653",
+      "name": "Format Appointment Info"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.appointment_info }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1440,
+        688
+      ],
+      "id": "3709607b-3cb7-4469-a865-05e4d2f931ed",
+      "name": "Return Appointment Info"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "confirm_cancellation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        848,
+        1328
+      ],
+      "id": "d4a0696f-b4fd-4fb9-b448-aae159515671",
+      "name": "Voice Agent – Confirm Cancellation",
+      "webhookId": "4e84590f-5b05-47c6-979c-77d8dd38ae25"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE appointments\nSET status = 'cancelled'\nWHERE schedule_id = $1",
+        "options": {
+          "queryReplacement": "={{ $json.body.args.appointment_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        1088
+      ],
+      "id": "e73d3ed4-3edd-447a-9171-8043670e513e",
+      "name": "Cancel Appointment Record",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE doctor_schedule\nSET status = 'Available'\nWHERE schedule_id = $1\nAND status = 'Booked'\nRETURNING schedule_id",
+        "options": {
+          "queryReplacement": "={{ $json.body.args.appointment_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1520,
+        1520
+      ],
+      "id": "d371f5a3-27ed-4193-ae5c-db848c34a45e",
+      "name": "Free Doctor Slot",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\nconst message = `${data.patient_name},\n\nYour Appointment with ${data.schedule_id} appointment id, that was scheduled with Doctor: ${data.doctor_name} on Date: ${data.appointment_date} at Time: ${data.appointment_time} has been successfully cancelled.\n\nThank you for choosing Medilens Clinic.`;\n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        1184
+      ],
+      "id": "63d82c9d-fe3c-4f70-ad90-5a607b57db5b",
+      "name": "Generate Cancellation Message"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "sendTo": "={{ $json.email }}",
+        "subject": "confirm cancellation",
+        "emailType": "text",
+        "message": "= Hi!{{ $json.patient_name }}  Your Appointment id with {{ $json.schedule_id }} , with Doctor: {{ $json.doctor_name }}  on Date: {{ $json.appointment_date }}  at Time: {{ $json.appointment_time }} has been successfully cancelled.  Thank you for choosing Medilens Clinic.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2224,
+        1408
+      ],
+      "id": "0d76a7e0-92e4-4c0c-aa38-03f19043954b",
+      "name": "Send Cancellation Email",
+      "webhookId": "03890666-29b9-4aee-9910-0b4045a6f628",
+      "retryOnFail": true,
+      "credentials": {
+        "googleApi": {
+          "id": "YOUR_GMAIL_SA_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2448,
+        1184
+      ],
+      "id": "6f96110f-853e-4fb8-a5bb-aa77d2f2271b",
+      "name": "Return Cancellation Confirmation"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "appointments",
+          "mode": "list",
+          "cachedResultName": "appointments"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "schedule_id",
+              "value": "={{ $json.body.args.appointment_id }}"
+            }
+          ]
+        },
+        "options": {
+          "outputColumns": [
+            "schedule_id",
+            "patient_name",
+            "doctor_name",
+            "appointment_date",
+            "appointment_time",
+            "email"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2000,
+        1184
+      ],
+      "id": "cc45819b-dd15-4f76-bb0d-1c26a989973b",
+      "name": "Get Appointment Details",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3d1e5bc5-3c4e-48e0-a9d3-58dd82c7d207",
+              "name": "body.args.appointment_id",
+              "value": "={{ $json.body.args.appointment_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1536,
+        1296
+      ],
+      "id": "724d9152-65ed-48c1-9433-8386d1f5e20a",
+      "name": "Extract Appointment Details"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "useDataOfInput": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1792,
+        1184
+      ],
+      "id": "52d1cc63-c0e8-4f4e-b02c-59a6de806c6d",
+      "name": "Combine Cancellation Record"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reschedule_check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -3248,
+        2448
+      ],
+      "id": "f7b6fd7e-851d-46cb-8ba2-2007548fbf4b",
+      "name": "Voice Agent – Reschedule Check",
+      "webhookId": "ec801fb0-3629-4ada-832c-2e5c627f529e"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * \nFROM appointments\nWHERE schedule_id = $1\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.args.appointment_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2800,
+        2432
+      ],
+      "id": "1be9dce4-a183-4058-a0d8-56e5ea57f30f",
+      "name": "Fetch Current Appointment",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \nschedule_id,\ndoctor_name,\nslot_date,\nslot_start_time,\nslot_end_time\nFROM doctor_schedule\nWHERE department ILIKE '%' || $1 || '%'\nAND COALESCE(status,'Available') = 'Available'\nAND slot_start_time >= $2\nAND slot_date >= $3\nORDER BY schedule_id,doctor_name, slot_date, slot_start_time\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.department }} , {{ $json.appointment_time }} , {{ $json.appointment_date }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2528,
+        2624
+      ],
+      "id": "2a403ca1-f225-4faa-9e94-8c6c81966a64",
+      "name": "Find Next Available Slot",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const appt = $json;\n\nconst date = new Date(appt.appointment_date).toLocaleDateString('en-US', {\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\nconst time = appt.appointment_time.slice(0,5);\n\nreturn {\n  current_appointment: `\nPatient Name: ${appt.patient_name}\nAppointment ID: ${appt.schedule_id}\nDoctor: ${appt.doctor_name}\nDepartment: ${appt.department}\nDate: ${date}\nTime: ${time}\nPhone: ${appt.phone}\nEmail: ${appt.email}\n`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2528,
+        2432
+      ],
+      "id": "6bf74f42-a7b8-4518-96a3-d1e2d58cbede",
+      "name": "Format Current Appointment"
+    },
+    {
+      "parameters": {
+        "jsCode": "const appt = $json;\n\nconst date = new Date(appt.slot_date).toLocaleDateString('en-US', {\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\n// Format time as HH:MM\nconst startTime = appt.slot_start_time.slice(0,5);\nconst endTime = appt.slot_end_time.slice(0,5);\n\nreturn {\n  next_available_slot: `\nAppointment ID: ${appt.schedule_id}\nDoctor: ${appt.doctor_name}\nDate: ${date}\nTime: ${startTime} - ${endTime}\n`\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2336,
+        2624
+      ],
+      "id": "8ff72545-b3ab-4b34-b360-ff511fdcaad0",
+      "name": "Format Next Slot"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2192,
+        2448
+      ],
+      "id": "6996fbb3-74ed-49ee-b3bf-5c15eed2ca70",
+      "name": "Combine Slot + Current Appointment"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Get values from items\nconst current = items[0]?.json?.current_appointment ?? \"No current appointment available.\";\nconst nextAvailable = items[1]?.json?.next_available_slot ?? \"No next available appointment slot.\";\n\nreturn [\n  {\n    json: {\n      message: `📌 Your Appointment:\n${current}\n\n⏭️ Next Available Slot:\n${nextAvailable}`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1984,
+        2448
+      ],
+      "id": "94bae945-3b36-4f52-9d70-7a12a4bf34f3",
+      "name": "Generate Reschedule Options"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1776,
+        2448
+      ],
+      "id": "cdfb01c1-ea0e-4031-b906-aa2bc6e240ab",
+      "name": "Return Reschedule Options"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "confirm_reschedule",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1248,
+        2656
+      ],
+      "id": "7b11e436-c1c7-4f16-a03e-226d16aad2e6",
+      "name": "Voice Agent – Confirm Reschedule",
+      "webhookId": "5cfea145-0810-4567-aa73-c9908e22a79b"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * \nFROM doctor_schedule\nWHERE slot_date = $1\nAND slot_start_time  = $2\nAND slot_end_time  = $3\n\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "={{ $json.body.args.appointment_date }} , {{ $json.body.args.slot_start_time }} , {{ $json.body.args.slot_end_time }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -704,
+        2592
+      ],
+      "id": "ea4b0072-c0c9-4c8b-bc2f-72a167df5166",
+      "name": "Fetch Selected Slot",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "appointments",
+          "mode": "list",
+          "cachedResultName": "appointments"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "schedule_id": "={{ $json.schedule_id }}",
+            "appointment_date": "={{ $json.slot_date }}",
+            "appointment_time": "={{ $json.slot_start_time }}",
+            "status": "Booked",
+            "created_at": "={{ $now }}",
+            "updated_at": "={{ $now }}",
+            "patient_name": "={{ $json.patient_name }}"
+          },
+          "matchingColumns": [
+            "patient_name"
+          ],
+          "schema": [
+            {
+              "id": "schedule_id",
+              "displayName": "schedule_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient_name",
+              "displayName": "patient_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "doctor_name",
+              "displayName": "doctor_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "appointment_date",
+              "displayName": "appointment_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "appointment_time",
+              "displayName": "appointment_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "time",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rescheduled_datetime",
+              "displayName": "rescheduled_datetime",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ai_suggestion",
+              "displayName": "ai_suggestion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -48,
+        2752
+      ],
+      "id": "475cf434-3e1a-4997-b23f-688da7570df8",
+      "name": "Update Appointment Record",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE doctor_schedule\nSET status = 'booked'\nWHERE schedule_id = $1",
+        "options": {
+          "queryReplacement": "={{ $json.schedule_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        176,
+        2608
+      ],
+      "id": "1befae87-4576-4376-b76a-33e1f51f459c",
+      "name": "Mark New Slot Booked",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE doctor_schedule\nSET status = 'Booked'\nWHERE schedule_id = $1\nAND status = 'Available'\nRETURNING schedule_id\n",
+        "options": {
+          "queryReplacement": "={{ $json.schedule_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -224,
+        2496
+      ],
+      "id": "10537d4a-4aa8-4c41-9f2e-4eb2b89067a4",
+      "name": "Free Old Slot",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\n\nconst message = `${data.patient_name},\n\nYour Appointment ID is ${data.schedule_id}.\n\nYour appointment has been successfully rescheduled.\n\nDoctor: ${data.doctor_name}\nDepartment: ${data.department}\n\nDate: ${data.appointment_date}\nTime: ${data.appointment_time}\n\nPlease arrive 10 minutes before your appointment time.\n\nThank you for choosing Medilens Clinic.`;\n\nreturn [\n  {\n    json: {\n      message: message\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        2752
+      ],
+      "id": "7f2a43ff-2681-497c-90e5-5b1d525192c1",
+      "name": "Generate Reschedule Message"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "sendTo": "={{ $json.email }}",
+        "subject": "reschedule_confirmation",
+        "emailType": "text",
+        "message": "={{ $json.patient_name }}  Your Appointment id is {{ $json.schedule_id }} ,  Your appointment has been successfully scheduled.  Doctor: {{ $json.doctor_name }}         Department: {{ $json.department }}  Date: {{ $json.appointment_date }} Time: {{ $json.appointment_time }}  Please arrive 10 minutes before your appointment time.  Thank you for choosing Medilens Clinic.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        2928
+      ],
+      "id": "b69396d9-c623-4e82-bda6-a1a1350bed4a",
+      "name": "Send Reschedule Email",
+      "webhookId": "00349645-187e-40de-9052-3b0f5fa5840b",
+      "retryOnFail": true,
+      "credentials": {
+        "googleApi": {
+          "id": "YOUR_GMAIL_SA_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        352,
+        2752
+      ],
+      "id": "2ce4deb1-bc05-42f7-8341-a81abc4c144e",
+      "name": "Return Reschedule Confirmation"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0661d86-2386-4f4f-b843-7d3d6be83811",
+              "name": "schedule_id",
+              "value": "={{ $json.schedule_id }}",
+              "type": "string"
+            },
+            {
+              "id": "7edfd81d-d617-40d4-8945-6bd908658bd8",
+              "name": "doctor_name",
+              "value": "={{ $json.doctor_name }}",
+              "type": "string"
+            },
+            {
+              "id": "bad21f8d-9ecf-4450-afe9-e7e4875cbf85",
+              "name": "slot_date",
+              "value": "={{ $json.slot_date }}",
+              "type": "string"
+            },
+            {
+              "id": "e65d4b3a-8f48-435f-af0a-f204aefdbab0",
+              "name": "slot_start_time",
+              "value": "={{ $json.slot_start_time }}",
+              "type": "string"
+            },
+            {
+              "id": "cc2dda35-1aff-49d4-b854-032b6f99f9cc",
+              "name": "slot_end_time",
+              "value": "={{ $json.slot_end_time }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        2592
+      ],
+      "id": "29de1728-6f91-4a00-9547-2115c8588202",
+      "name": "Extract Slot Details"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dd8afcec-4b9e-4a03-895e-32375345dd71",
+              "name": "patient_name",
+              "value": "={{ $json.body.call.collected_dynamic_variables['patient name'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -704,
+        2768
+      ],
+      "id": "4cb2e2c6-9a25-46a9-90a0-952c96eb4324",
+      "name": "Extract Patient Name"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -448,
+        2752
+      ],
+      "id": "7d9a833e-13a4-4ac3-a500-20baef6344f1",
+      "name": "Combine Slot + Patient"
+    },
+    {
+      "parameters": {
+        "jsCode": "const slot = items[0].json;\nconst patient = items[1].json;\n\nreturn [\n{\njson: {\nschedule_id: slot.schedule_id,\ndoctor_name: slot.doctor_name,\nslot_date: slot.slot_date.replace(/\"/g, ''),\nslot_start_time: slot.slot_start_time,\nslot_end_time: slot.slot_end_time,\npatient_name: patient.patient_name\n}\n}\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        2752
+      ],
+      "id": "49de4bdc-63de-47b2-a2ac-69211899b840",
+      "name": "Generate Reschedule Details"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "783ac9df-516a-4574-bb73-fd35c765e392",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3056,
+        2448
+      ],
+      "id": "618c66e2-82a0-4f83-9d27-b09e16df2f7e",
+      "name": "Check Retell2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "783ac9df-516a-4574-bb73-fd35c765e392",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1056,
+        1328
+      ],
+      "id": "f856baf3-8cfb-4951-aa1b-76f8d5421a42",
+      "name": "Check Retell3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "783ac9df-516a-4574-bb73-fd35c765e392",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -976,
+        2656
+      ],
+      "id": "d60e5981-f9c4-4726-a53d-00a986524913",
+      "name": "Check Retell4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "783ac9df-516a-4574-bb73-fd35c765e392",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        704
+      ],
+      "id": "1ee131b6-3c23-4088-ab79-0631339b529a",
+      "name": "Check Retell5"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "voice_logs",
+          "mode": "list",
+          "cachedResultName": "voice_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "call_id": "={{ $json.body.call.call_id }}",
+            "call_status": "={{ $json.body.call.call_status }}",
+            "agent_name": "={{ $json.body.call.agent_id }}",
+            "start_timestamp": "={{ $json.body.call.start_timestamp }}",
+            "transcript": "={{ $json.body.call.transcript }}",
+            "created_at": "={{ $now }}",
+            "updated_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "call_id",
+              "displayName": "call_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "call_status",
+              "displayName": "call_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "agent_name",
+              "displayName": "agent_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_timestamp",
+              "displayName": "start_timestamp",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript",
+              "displayName": "transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -2624,
+        2240
+      ],
+      "id": "0194785c-71dc-4434-a1b2-9d0dbf974027",
+      "name": "Update voice logs2",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fca19cc6-f155-4079-b161-8eda0bd824ef",
+              "name": "body.call.call_id",
+              "value": "={{ $json.body.call.call_id }}",
+              "type": "string"
+            },
+            {
+              "id": "889c313d-9b7a-4193-a6b9-22d312f6c3c1",
+              "name": "body.call.agent_id",
+              "value": "={{ $json.body.call.agent_id }}",
+              "type": "string"
+            },
+            {
+              "id": "d5c07aa1-032a-4a2a-8745-16b1a72a5f33",
+              "name": "body.call.start_timestamp",
+              "value": "={{ $json.body.call.start_timestamp }}",
+              "type": "number"
+            },
+            {
+              "id": "b79ca5af-c342-4387-93e8-caf899ba12a1",
+              "name": "body.call.transcript",
+              "value": "={{ $json.body.call.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "1c6a0e9b-5f9f-432a-a694-db47acd03ec7",
+              "name": "body.call.call_status",
+              "value": "={{ $json.body.call.call_status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2784,
+        2240
+      ],
+      "id": "703124df-5a5b-41be-a95d-7c4693dc5040",
+      "name": "Extract Log Data2"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "voice_logs",
+          "mode": "list",
+          "cachedResultName": "voice_logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "call_id": "={{ $json.body.call.call_id }}",
+            "call_status": "={{ $json.body.call.call_status }}",
+            "agent_name": "={{ $json.body.call.agent_id }}",
+            "start_timestamp": "={{ $json.body.call.start_timestamp }}",
+            "transcript": "={{ $json.body.call.transcript }}",
+            "created_at": "={{ $now }}",
+            "updated_at": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "call_id",
+              "displayName": "call_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "call_status",
+              "displayName": "call_status",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "agent_name",
+              "displayName": "agent_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_timestamp",
+              "displayName": "start_timestamp",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript",
+              "displayName": "transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1056,
+        496
+      ],
+      "id": "8c7650c7-dcb8-4a21-b3c1-029965383566",
+      "name": "Update voice logs4",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fca19cc6-f155-4079-b161-8eda0bd824ef",
+              "name": "body.call.call_id",
+              "value": "={{ $json.body.call.call_id }}",
+              "type": "string"
+            },
+            {
+              "id": "889c313d-9b7a-4193-a6b9-22d312f6c3c1",
+              "name": "body.call.agent_id",
+              "value": "={{ $json.body.call.agent_id }}",
+              "type": "string"
+            },
+            {
+              "id": "d5c07aa1-032a-4a2a-8745-16b1a72a5f33",
+              "name": "body.call.start_timestamp",
+              "value": "={{ $json.body.call.start_timestamp }}",
+              "type": "number"
+            },
+            {
+              "id": "b79ca5af-c342-4387-93e8-caf899ba12a1",
+              "name": "body.call.transcript",
+              "value": "={{ $json.body.call.transcript }}",
+              "type": "string"
+            },
+            {
+              "id": "1c6a0e9b-5f9f-432a-a694-db47acd03ec7",
+              "name": "body.call.call_status",
+              "value": "={{ $json.body.call.call_status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        496
+      ],
+      "id": "faca16b9-b22c-4465-b983-c6ff3bef8ea1",
+      "name": "Extract Log Data4"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Error",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -2800,
+        2640
+      ],
+      "id": "678ff457-ccf9-430c-838f-edf33bf768c0",
+      "name": "Return Api Error2"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Error",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -688,
+        2928
+      ],
+      "id": "af35868f-a7cc-4056-a6f6-c6c4644cb5e4",
+      "name": "Return Api Error3"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Error",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1296,
+        1536
+      ],
+      "id": "2480ee1a-7186-4b24-92ca-f95f91dda494",
+      "name": "Return Api Error4"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Error",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        944,
+        848
+      ],
+      "id": "337f119b-13dc-4a4d-8f30-8df7b6b9d4a0",
+      "name": "Return Api Error5"
+    },
+    {
+      "parameters": {
+        "content": "## VOICE APPOINTMENT BOOKING SYSTEM \n**This workflow acts as a backend for a Voice AI medical receptionist.\n\nThe voice agent sends requests through webhooks to perform actions such as:\n\n• Check doctor availability\n• Book appointments\n• Cancel appointments\n• Reschedule appointments\n• Retrieve appointment details\n\nThe workflow interacts with PostgreSQL to store and update appointment data\nand sends confirmation emails to patients**",
+        "height": 384,
+        "width": 512
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3728,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "6ec9852e-f72d-4e53-a855-a400f2aaa51e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## CHECK DOCTOR AVAILABILITY FLOW \n**1. Voice agent sends a request to check doctor availability.\n2. Patient request data (department, date, etc.) is extracted.\n3. The database is queried for available slots in doctor_schedule.\n4. If no slots exist, the workflow returns a \"No slots available\" message.\n5. If slots exist, they are grouped by doctor and date.\n6. The formatted slot list is returned to the voice agent.\n\nThis allows the AI receptionist to read available time slots to the patient**",
+        "height": 384,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2192,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "c3a24d2a-7f92-4a41-a830-d6b38268ddd0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## BOOK APPOINTMENT FLOW \n**1. Voice agent sends booking data from the phone call.\n2. Patient details are extracted from the request body.\n3. Input validation ensures required fields exist:\n   - patient name\n   - email\n   - phone number\n   - schedule_id\n4. The system attempts to reserve the doctor slot in doctor_schedule.\n5. If the slot is available it is marked as \"Booked\".\n6. A new appointment record is inserted into the appointments table.\n7. Confirmation email is sent to the patient.\n8. A confirmation message is returned to the voice agent**",
+        "height": 416,
+        "width": 564
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1920,
+        1728
+      ],
+      "typeVersion": 1,
+      "id": "cf6cbe57-4cb2-4089-b838-cc24b39f7e27",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## CHECK APPOINTMENT FLOW\n \n**This flow allows a patient to retrieve their appointment details.\n\n1. The voice agent sends the appointment ID.\n2. The system queries the appointments table.\n3. Appointment details are formatted into a readable message.\n4. The message is returned to the voice agent.\n\nThe voice agent can then read the appointment information to the patient**",
+        "height": 320,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        544
+      ],
+      "typeVersion": 1,
+      "id": "f55c303d-02d4-4e1a-bdfe-3fa7e1ba712a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## CANCEL APPOINTMENT FLOW\n \n**1. The voice agent confirms that the patient wants to cancel.\n2. The appointment record is updated to status = cancelled.\n3. The doctor slot in doctor_schedule is freed and marked as Available.\n4. A cancellation message is generated.\n5. A cancellation email is sent to the patient.\n6. Confirmation is returned to the voice agent**",
+        "height": 288,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2640,
+        1104
+      ],
+      "typeVersion": 1,
+      "id": "1a1d0098-b0b1-484f-a3fc-9c7370e362e1",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## RESCHEDULE CHECK FLOW\n \n**1. The voice agent requests rescheduling.\n2. Current appointment details are retrieved.\n3. The system searches for the next available slot in the same department.\n4. Both current appointment and new slot options are combined.\n5. The AI agent reads the next available slot to the patient**",
+        "height": 208,
+        "width": 416
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2176,
+        2640
+      ],
+      "typeVersion": 1,
+      "id": "8451bff6-008d-4054-b366-8afde65cc1b9",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## CONFIRM RESCHEDULE FLOW\n\n \n**1. The patient confirms the new slot during the voice call.\n2. The selected slot is retrieved from doctor_schedule.\n3. The appointment record is updated with the new date and time.\n4. The new slot is marked as Booked.\n5. A reschedule confirmation message is generated.\n6. A confirmation email is sent to the patient.\n7. The voice agent receives the confirmation message**",
+        "height": 368,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        560,
+        2656
+      ],
+      "typeVersion": 1,
+      "id": "4240917e-eba3-4d56-ab6a-cac30fb2446a",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## ERROR HANDLING SYSTEM\n\n\n**The workflow includes error detection for database failures.\n\nIf a database operation fails:\n\n1. The error is captured.\n2. Error metadata is stored.\n3. The workflow returns a 500 server error response.\n\nThis prevents workflow crashes and provides consistent API responses**",
+        "height": 336,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3696,
+        848
+      ],
+      "typeVersion": 1,
+      "id": "1220660a-ef1d-4cbf-93cf-13b02dfc1016",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## VOICE CALL LOGGING\n\n**The workflow logs important call data from the voice agent including:\n\n• call_id\n• call_status\n• patient information\n• timestamps\n\nThis data helps with analytics, debugging, and monitoring voice assistant performance**",
+        "height": 304,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3696,
+        1248
+      ],
+      "typeVersion": 1,
+      "id": "86ca1273-ac91-44ab-ab4b-601bdfc423d1",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        464,
+        2240
+      ],
+      "id": "418f928a-316f-4e7e-9344-99283fddec9b",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "complaint_status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        2128
+      ],
+      "id": "928f6600-d3b2-4867-b1d5-82ba82b50ac8",
+      "name": "Complaint Webhook",
+      "webhookId": "38faba12-8c7a-4387-9337-091ce362516a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "38e00168-a8d9-486d-84e6-1ac1e194d950",
+              "leftValue": "={{ $json.headers['x-retell-signature'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        2128
+      ],
+      "id": "033f7e7d-b018-4626-af54-8dbc970c0f8e",
+      "name": "Verify Request Signature"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e6b8cad-5273-44e3-aa00-dc2388d1942a",
+              "name": "body.call.collected_dynamic_variables.name",
+              "value": "={{ $json.body.call.collected_dynamic_variables.name }}",
+              "type": "string"
+            },
+            {
+              "id": "07e85ddb-4e1f-4043-8e1c-38a311e38692",
+              "name": "body.call.collected_dynamic_variables['complaint id']",
+              "value": "={{ $json.body.call.collected_dynamic_variables['complaint id'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        2032
+      ],
+      "id": "9d8cb9e5-4b36-405d-9f90-3e1db467f256",
+      "name": "Extract Complaint Details"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "complaints",
+          "mode": "list",
+          "cachedResultName": "complaints"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "complaint_code",
+              "value": "={{ $json.body.call.collected_dynamic_variables['complaint id'] }}"
+            }
+          ]
+        },
+        "options": {
+          "outputColumns": [
+            "status",
+            "name",
+            "created_at",
+            "complaint_code"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        2032
+      ],
+      "id": "d2819fa8-d01e-49a4-86d2-54477bc86583",
+      "name": "Fetch Complaint From Database",
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6be399e4-4735-4efb-8b04-b941db422f48",
+              "leftValue": "={{ $items().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        2032
+      ],
+      "id": "8888f80a-1347-4dee-b995-bc671e4f9e8a",
+      "name": "Complaint Found?"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=Sorry {{ $json.body.call.collected_dynamic_variables.name }}, \nI couldn't find a complaint with ID {{ $json.body.call.collected_dynamic_variables['complaint id'] }}.\nPlease check the complaint number and try again.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1232,
+        1904
+      ],
+      "id": "5174d777-b81f-4904-9ab3-804bdb0197a0",
+      "name": "Return Complaint Not Found Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nif (items.length === 0) {\n  return [\n    {\n      json: {\n        message: \"Sorry, I couldn't find a complaint with that ID. Please check the number and try again.\"\n      }\n    }\n  ];\n}\n\nconst outputItems = [];\n\nfor (const item of items) {\n\n  const complaintCode = item.json.complaint_code || \"Unknown\";\n  const name = item.json.name || \"Customer\";\n  const status = (item.json.status || \"\").toLowerCase();\n  const createdAt = item.json.created_at ? new Date(item.json.created_at) : null;\n\n  const now = new Date();\n  let diffHours = 0;\n\n  if (createdAt) {\n    diffHours = (now - createdAt) / (1000 * 60 * 60);\n  }\n\n  let message = \"\";\n  let escalate = false;\n\n  if (status === \"pending\" && diffHours > 48) {\n\n    escalate = true;\n    message = `${name}, your complaint ${complaintCode} has been pending for longer than expected. I will escalate it to our support team immediately.`;\n\n  } \n  else if (status === \"resolved\") {\n\n    message = `${name}, your complaint ${complaintCode} has been resolved. Thank you for your patience!`;\n\n  } \n  else if (status === \"pending\") {\n\n    message = `${name}, your complaint ${complaintCode} is currently pending. Our team is working on it.`;\n\n  } \n  else if (status === \"in_progress\") {\n\n    message = `${name}, your complaint ${complaintCode} is currently being worked on by our team.`;\n\n  } \n  else {\n\n    message = `${name}, the current status of complaint ${complaintCode} is ${status || \"unknown\"}.`;\n\n  }\n\n  outputItems.push({\n    json: {\n      complaint_code: complaintCode,\n      name: name,\n      status: status,\n      escalate: escalate,\n      message: message\n    }\n  });\n}\n\nreturn outputItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        2048
+      ],
+      "id": "e7862bc9-36bc-4199-b4fb-135db08b68d1",
+      "name": "Generate Status Response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8725021a-33a0-4839-b3f2-3d4f834b6973",
+              "leftValue": "={{ $json.escalate }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1344,
+        2048
+      ],
+      "id": "e7ebf4ea-d9bd-4f9f-9d84-2e5689deff27",
+      "name": "Needs Escalation?"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0AF8UJA00P",
+          "mode": "list",
+          "cachedResultName": "all-complaint-management"
+        },
+        "text": "=🚨 Complaint Escalation  Complaint ID: {{$json.complaint_code}} Customer: {{$json.name}} Status: {{$json.status}}  This complaint has been pending for more than 48 hours. Please investigate.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1600,
+        2032
+      ],
+      "id": "a35a644a-3d98-4df9-b940-242a8b9a2052",
+      "name": "Send Escalation Alert to Support",
+      "webhookId": "2f156e93-9e7d-4eac-8433-55030fd23893",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "YOUR_SLACK_CREDENTIAL_ID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1600,
+        2208
+      ],
+      "id": "bbf49286-7bb3-43af-8a9d-9b4624f77110",
+      "name": "Return Complaint Status"
+    },
+    {
+      "parameters": {
+        "content": "## AI COMPLAINT MANAGEMENT WORKFLOW \n**1. Complaint Webhook\n   → Receives request from AI voice agent.\n\n2. Verify Request Signature\n   → Ensures the request is secure and from a trusted source.\n\n3. Extract Complaint Details\n   → Extract name and complaint_id from webhook body.\n\n4. Fetch Complaint From Database (Postgres)\n   → Query complaint using complaint_code.\n\n5. IF – Complaint Found?\n   Condition: {{$items().length}} = 0\n\n   TRUE → Return Complaint Not Found Message\n   \"Sorry {name}, I couldn't find a complaint with that ID. Please check the complaint number.\"\n\n   FALSE → Continue workflow\n\n6. Generate Status Response (Code Node)\n   → Build personalized message based on status:\n\n   * resolved\n   * pending\n   * in_progress\n     → Check escalation rule:\n     IF status = pending AND created_at > 48 hours\n     → set escalate = true\n\n7. IF – Needs Escalation?\n   Condition: {{$json.escalate}} = true\n\n   TRUE → Send Escalation Alert to Support (Slack / Email)\n\n8. Return Complaint Status\n   → Send message back to AI voice agent.\n\nExample responses:\n\nResolved\n\"{name}, your complaint {complaint_code} has been resolved. Thank you for your patience.\"\n\nPending\n\"{name}, your complaint {complaint_code} is currently pending. Our team is working on it.\"\n\nIn Progress\n\"{name}, your complaint {complaint_code} is currently being worked on.\"\n\nEscalated\n\"{name}, your complaint has been pending longer than expected. I will escalate it to our support team immediatel**",
+        "height": 1024,
+        "width": 864,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2576,
+        1792
+      ],
+      "typeVersion": 1,
+      "id": "19a495f6-1ece-4ace-8dd9-7d61aa755e61",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82bee1bc-4219-4451-b9e6-58d750895d25",
+              "name": "data.name",
+              "value": "={{ $json.data.name }}",
+              "type": "string"
+            },
+            {
+              "id": "08e8ff35-11d9-4c36-adca-26de2eed56a1",
+              "name": "data.appointment_time",
+              "value": "={{ $json.data.appointment_time }}",
+              "type": "string"
+            },
+            {
+              "id": "cdc3f582-e9db-4f7b-9139-7e029a8a99fd",
+              "name": "data.appointment_date",
+              "value": "={{ $json.data.appointment_date }}",
+              "type": "string"
+            },
+            {
+              "id": "6a98dc0f-d30a-4b89-b6f1-4168a86d80d4",
+              "name": "data.email",
+              "value": "={{ $json.data.email }}",
+              "type": "string"
+            },
+            {
+              "id": "c2602831-bcb5-4292-8f6a-b7b3f12cad67",
+              "name": "data.doctor_name",
+              "value": "={{ $json.data.doctor_name }}",
+              "type": "string"
+            },
+            {
+              "id": "c34367c3-c34b-4f14-8e2c-cb896dc6b8d2",
+              "name": "data.department",
+              "value": "={{ $json.data.department }}",
+              "type": "string"
+            },
+            {
+              "id": "0200efd3-159e-44aa-b167-30b79e59eee4",
+              "name": "data.schedule_id",
+              "value": "={{ $json.data.schedule_id }}",
+              "type": "string"
+            },
+            {
+              "id": "339034cf-dc59-4ef1-8675-ac37f49edfaf",
+              "name": "data.phone_no",
+              "value": "={{ $json.data.phone_no }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1728,
+        1424
+      ],
+      "id": "ab70bba2-5ce3-4cfe-b13c-744fdb31dad4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "useDataOfInput": 2
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1360,
+        1408
+      ],
+      "id": "7e3c2c21-a6a9-48cf-94ef-166dde51476d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -224,
+        1552
+      ],
+      "id": "9d8099d5-ace1-4fc2-861c-8519171955fd",
+      "name": "Merge1"
+    }
+  ],
+  "connections": {
+    "Rate Limit Protection1": {
+      "main": [
+        [
+          {
+            "node": "Extract Patient Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "429 Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent – Check Doctor Availability": {
+      "main": [
+        [
+          {
+            "node": "Check Retell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Patient Details": {
+      "main": [
+        [
+          {
+            "node": "Query Available Doctor Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Available Doctor Slots": {
+      "main": [
+        [
+          {
+            "node": "Check If Slots Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Slots Exist": {
+      "main": [
+        [
+          {
+            "node": "Return No Slots",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Group Slots By Doctor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group Slots By Doctor": {
+      "main": [
+        [
+          {
+            "node": "Return Available Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Database Error": {
+      "main": [
+        [
+          {
+            "node": "Return 500 Server Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent – Book Appointment": {
+      "main": [
+        [
+          {
+            "node": "Check Retell1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Booking Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Booking Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reserve Doctor Slot": {
+      "main": [
+        [
+          {
+            "node": "Slot Or No Slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Appointment Record": {
+      "main": [
+        [
+          {
+            "node": "DB Insert Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Confirmation Email": {
+      "main": [
+        [
+          {
+            "node": "DB Insert Failed?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Confirmation Message": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB Insert Failed?": {
+      "main": [
+        [
+          {
+            "node": "Handle Database Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Appointment": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Confirmation Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Google Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB Insert Failed?1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Check Retell": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Protection1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Log Data1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Api Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retell1": {
+      "main": [
+        [
+          {
+            "node": "Extract Booking Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Api Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Log Data1": {
+      "main": [
+        [
+          {
+            "node": "Update voice logs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Booking Input": {
+      "main": [
+        [
+          {
+            "node": "Validation True",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation True": {
+      "main": [
+        [
+          {
+            "node": "Reserve Doctor Slot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot Or No Slot": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Slot Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent – Check Appointment": {
+      "main": [
+        [
+          {
+            "node": "Check Retell5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Appointment Details": {
+      "main": [
+        [
+          {
+            "node": "Format Appointment Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Appointment Info": {
+      "main": [
+        [
+          {
+            "node": "Return Appointment Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent – Confirm Cancellation": {
+      "main": [
+        [
+          {
+            "node": "Check Retell3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancel Appointment Record": {
+      "main": [
+        [
+          {
+            "node": "Combine Cancellation Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Cancellation Message": {
+      "main": [
+        [
+          {
+            "node": "Return Cancellation Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Appointment Details": {
+      "main": [
+        [
+          {
+            "node": "Generate Cancellation Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Cancellation Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Appointment Details": {
+      "main": [
+        [
+          {
+            "node": "Combine Cancellation Record",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combine Cancellation Record": {
+      "main": [
+        [
+          {
+            "node": "Get Appointment Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent – Reschedule Check": {
+      "main": [
+        [
+          {
+            "node": "Check Retell2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Current Appointment": {
+      "main": [
+        [
+          {
+            "node": "Find Next Available Slot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Current Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Next Available Slot": {
+      "main": [
+        [
+          {
+            "node": "Format Next Slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Current Appointment": {
+      "main": [
+        [
+          {
+            "node": "Combine Slot + Current Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Next Slot": {
+      "main": [
+        [
+          {
+            "node": "Combine Slot + Current Appointment",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combine Slot + Current Appointment": {
+      "main": [
+        [
+          {
+            "node": "Generate Reschedule Options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Reschedule Options": {
+      "main": [
+        [
+          {
+            "node": "Return Reschedule Options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent – Confirm Reschedule": {
+      "main": [
+        [
+          {
+            "node": "Check Retell4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Selected Slot": {
+      "main": [
+        [
+          {
+            "node": "Extract Slot Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Appointment Record": {
+      "main": [
+        [
+          {
+            "node": "Mark New Slot Booked",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Reschedule Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Reschedule Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Reschedule Message": {
+      "main": [
+        [
+          {
+            "node": "Return Reschedule Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Slot Details": {
+      "main": [
+        [
+          {
+            "node": "Combine Slot + Patient",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Free Old Slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Patient Name": {
+      "main": [
+        [
+          {
+            "node": "Combine Slot + Patient",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combine Slot + Patient": {
+      "main": [
+        [
+          {
+            "node": "Generate Reschedule Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Reschedule Details": {
+      "main": [
+        [
+          {
+            "node": "Update Appointment Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retell2": {
+      "main": [
+        [
+          {
+            "node": "Fetch Current Appointment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Log Data2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Api Error2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Log Data2": {
+      "main": [
+        [
+          {
+            "node": "Update voice logs2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Log Data4": {
+      "main": [
+        [
+          {
+            "node": "Update voice logs4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retell4": {
+      "main": [
+        [
+          {
+            "node": "Fetch Selected Slot",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Patient Name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Api Error3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retell3": {
+      "main": [
+        [
+          {
+            "node": "Cancel Appointment Record",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Appointment Details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Free Doctor Slot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Api Error4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Retell5": {
+      "main": [
+        [
+          {
+            "node": "Extract Log Data4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Appointment Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Api Error5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complaint Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify Request Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Request Signature": {
+      "main": [
+        [
+          {
+            "node": "Extract Complaint Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Complaint Details": {
+      "main": [
+        [
+          {
+            "node": "Fetch Complaint From Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Complaint From Database": {
+      "main": [
+        [
+          {
+            "node": "Complaint Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complaint Found?": {
+      "main": [
+        [
+          {
+            "node": "Return Complaint Not Found Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Status Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Status Response": {
+      "main": [
+        [
+          {
+            "node": "Needs Escalation?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Escalation?": {
+      "main": [
+        [
+          {
+            "node": "Send Escalation Alert to Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Complaint Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Insert Appointment Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Return Booking Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d3551369-83a7-4235-8f48-799937bacb44",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "E6PKkv2Uc3VJ3idQ",
+  "tags": []
+}
