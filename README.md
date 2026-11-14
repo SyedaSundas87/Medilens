@@ -39,11 +39,11 @@ Medilens is a modular, AI-first hospital automation system that replaces manual,
 ## Demo 
 ## Voice Agent Demo:
 
-[![Voice Agent Demo](https://img.youtube.com/vi/migZQqh0CoA/0.jpg)](https://youtu.be/migZQqh0CoA)
+[![Voice Agent Demo](https://youtu.be/kcS6HenZV0A)
 
 ## Full Medilens Demo:
 
-[![Medilens Full Demo](https://img.youtube.com/vi/L5w1mAUsjp0/0.jpg)](https://youtu.be/L5w1mAUsjp0)
+[![Medilens Full Demo](https://youtu.be/vr_Y6k8hmC4)
 
 ## UI Preview
 
